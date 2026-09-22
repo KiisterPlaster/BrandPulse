@@ -11,6 +11,16 @@ def calcular_share_of_voice(
     repository: RespostaRepository,
     marca: str,
 ) -> ShareOfVoiceResponse:
+    """
+    Calcula o Share of Voice de uma marca.
+
+    O cálculo considera a quantidade total de respostas e quantas
+    dessas respostas possuem menção à marca informada.
+
+    Também calcula o Share of Voice separadamente para cada plataforma.
+
+    Retorna zero quando não existem respostas cadastradas.
+    """
     respostas = repository.listar()
 
     total_respostas = len(respostas)
@@ -69,6 +79,16 @@ def calcular_share_of_voice(
 
 
 def calcular_score_citacao(resposta: Resposta) -> float:
+    """
+    Calcula o score de uma resposta com base nas menções.
+
+    O score considera dois fatores:
+    - quantidade de marcas distintas mencionadas, multiplicada por 2;
+    - quantidade total de ocorrências das marcas.
+
+    Quanto maior o score, maior a relevância da resposta
+    para o ranking de citações.
+    """
     marcas_distintas = len(resposta.mencoes)
 
     ocorrencias_totais = sum(mencao.ocorrencias for mencao in resposta.mencoes)
@@ -80,6 +100,15 @@ def obter_top_citacoes(
     respostas: list[Resposta],
     n: int,
 ) -> list[TopCitacaoResponse]:
+    """
+    Retorna as respostas com maior score de citação.
+
+    Apenas respostas que possuem pelo menos uma menção são
+    consideradas no ranking.
+
+    As respostas são ordenadas pelo score em ordem decrescente
+    e limitadas à quantidade solicitada pelo parâmetro n.
+    """
     respostas_com_mencoes = [resposta for resposta in respostas if resposta.mencoes]
 
     respostas_ordenadas = sorted(

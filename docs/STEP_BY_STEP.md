@@ -165,3 +165,19 @@ O objetivo é documentar não apenas o que foi implementado, mas também **por q
 - Teste de payloads inválidos.
 - Teste de criação de respostas válidas.
 - Teste de respostas HTTP esperadas para diferentes cenários.
+
+### 12. Documentação e organização do projeto
+- Documentação do arquivo principal da aplicação (`main.py`).
+- Documentação das rotas da API.
+- Documentação dos schemas Pydantic utilizados pela aplicação.
+- Documentação dos serviços responsáveis pelas regras de negócio.
+- Documentação do serviço de detecção de menções.
+- Documentação do serviço de analytics.
+- Documentação do Repository responsável pelo acesso aos dados de respostas.
+- Documentação dos métodos de criação, consulta e listagem de respostas.
+- Documentação dos métodos utilizados para consulta de respostas por marca.
+- Inclusão de docstrings nas principais classes e funções.
+- Padronização da documentação interna do código.
+- Organização da documentação de acordo com a responsabilidade de cada camada da aplicação.
+- Revisão da estrutura do projeto após a implementação da API.
+- Verificação da qualidade e padronização do código com Ruff.

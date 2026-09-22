@@ -26,9 +26,19 @@ def get_repository():
 @router.get(
     "/share-of-voice",
     response_model=ShareOfVoiceResponse,
+    summary="Calcula o Share of Voice de uma marca",
+    description=(
+        "Retorna a participação de uma marca entre as respostas "
+        "armazenadas na aplicação."
+    ),
+    response_description="Dados de Share of Voice da marca.",
 )
 def share_of_voice(
-    marca: str = Query(min_length=1),
+    marca: str = Query(
+        min_length=1,
+        description="Nome da marca que será analisada.",
+        examples=["Acme"],
+    ),
     repository: RespostaRepository = Depends(get_repository),
 ):
     return calcular_share_of_voice(
@@ -40,9 +50,20 @@ def share_of_voice(
 @router.get(
     "/top-citacoes",
     response_model=list[TopCitacaoResponse],
+    summary="Retorna as respostas com mais citações",
+    description=(
+        "Retorna as respostas que possuem maior quantidade de "
+        "citações de marcas, ordenadas de acordo com o score calculado."
+    ),
+    response_description="Lista das respostas com maior número de citações.",
 )
 def top_citacoes(
-    n: int = Query(default=5, ge=1),
+    n: int = Query(
+        default=5,
+        ge=1,
+        description="Quantidade máxima de respostas a serem retornadas.",
+        examples=[5],
+    ),
     repository: RespostaRepository = Depends(get_repository),
 ):
     respostas = repository.listar()

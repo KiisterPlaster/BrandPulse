@@ -23,6 +23,13 @@ def get_repository():
     "/respostas",
     response_model=list[RespostaResponse],
     status_code=status.HTTP_201_CREATED,
+    summary="Cria novas respostas",
+    description=(
+        "Recebe uma lista de respostas, detecta automaticamente "
+        "as menções de marcas presentes no texto e persiste "
+        "as respostas e suas respectivas menções."
+    ),
+    response_description="Lista das respostas criadas.",
 )
 def criar_respostas(
     dados: list[RespostaCreate],
