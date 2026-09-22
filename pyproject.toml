@@ -1,0 +1,9 @@
+[project]
+name = "brandpulse"
+version = "0.1.0"
+description = "Monitoramento da presença das marcas"
+requires-python = ">=3.11"
+dependencies = [
+    "fastapi>=0.141.1",
+    "uvicorn>=0.53.0",
+]
