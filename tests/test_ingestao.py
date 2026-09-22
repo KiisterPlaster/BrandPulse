@@ -5,7 +5,6 @@ import pytest
 from app.schemas.respostas import RespostaCreate
 from app.services.ingestao import carregar_respostas
 
-
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
