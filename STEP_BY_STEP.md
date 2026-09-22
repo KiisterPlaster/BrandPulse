@@ -48,3 +48,26 @@ O objetivo é documentar não apenas o que foi implementado, mas também **por q
 - Durante a execução dos testes, foi identificado um `DetachedInstanceError` ao tentar acessar o relacionamento `mencoes` após o encerramento da sessão.
 - O problema foi corrigido mantendo o acesso aos relacionamentos dentro da sessão ativa, respeitando o comportamento de carregamento lazy do SQLAlchemy.
 - Ao final da etapa, foram executados os testes automatizados e as verificações de qualidade com Ruff.
+
+### 5. Implementação da detecção de menções
+- Definição das marcas monitoradas:
+  - `Acme`
+  - `Zenith`
+  - `Nimbus`
+- Definição das regras para identificação das marcas nas respostas.
+- Implementação da busca case-insensitive.
+- Tratamento de variações de escrita das marcas.
+- Definição de como evitar falsos positivos em ocorrências de palavras.
+- Implementação do serviço responsável por analisar uma resposta.
+- Identificação das marcas mencionadas em cada resposta.
+- Contagem das ocorrências de cada marca.
+- Definição das informações que serão armazenadas em `Mencao`.
+- Criação de testes unitários para a detecção de menções.
+- Testes de diferentes casos, incluindo:
+  - respostas sem marcas;
+  - uma única marca;
+  - múltiplas marcas;
+  - múltiplas ocorrências da mesma marca;
+  - diferenças entre letras maiúsculas e minúsculas;
+  - variações de escrita;
+  - textos com possíveis falsos positivos.
