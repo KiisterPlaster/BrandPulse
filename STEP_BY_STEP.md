@@ -88,3 +88,15 @@ O objetivo é documentar não apenas o que foi implementado, mas também **por q
 - Teste do comportamento para arquivos que não possuem uma lista de respostas.
 - Validação de que os registros carregados pela ingestão são instâncias de `RespostaCreate`.
 - Execução dos testes automatizados e das verificações de qualidade com Ruff.
+
+### 8. Implementação do pipeline de processamento
+- Integração do serviço de ingestão com o serviço de detecção de menções.
+- Definição do fluxo responsável por processar uma resposta individual.
+- Validação da resposta utilizando os schemas Pydantic.
+- Detecção das marcas monitoradas presentes no texto da resposta.
+- Criação das entidades `Mencao` a partir das marcas identificadas.
+- Integração com o `RespostaRepository` para persistência dos dados processados.
+- Garantia de que respostas sem menções também possam ser processadas.
+- Separação das responsabilidades entre ingestão, detecção de menções e persistência.
+- Criação de testes para validar o fluxo completo de processamento.
+- Validação do pipeline utilizando os dados presentes nos arquivos de fixtures.
