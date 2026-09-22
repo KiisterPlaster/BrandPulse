@@ -145,3 +145,23 @@ O objetivo é documentar não apenas o que foi implementado, mas também **por q
 - Validação de que respostas sem menções são ignoradas.
 - Validação dos dados retornados pelo serviço de Top Citações.
 
+### 11. Implementação e testes da API
+- Criação da camada de API utilizando FastAPI.
+- Criação dos routers para separação das responsabilidades.
+- Implementação da rota `GET /share-of-voice`.
+- Implementação da rota `GET /top-citacoes`.
+- Implementação da rota `POST /respostas`.
+- Integração das rotas com os serviços da aplicação.
+- Integração dos serviços com o Repository.
+- Utilização dos schemas Pydantic para validação das entradas e saídas.
+- Validação dos parâmetros das requisições.
+- Definição dos códigos de resposta HTTP.
+- Integração do fluxo de criação de respostas com a ingestão e detecção de menções.
+- Criação dos testes das rotas da API utilizando `TestClient`.
+- Teste da rota `/share-of-voice`.
+- Teste da rota `/top-citacoes`.
+- Teste da rota `/respostas`.
+- Teste de parâmetros inválidos.
+- Teste de payloads inválidos.
+- Teste de criação de respostas válidas.
+- Teste de respostas HTTP esperadas para diferentes cenários.

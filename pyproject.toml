@@ -34,6 +34,7 @@ select = [
 
 ignore = [
     "E501",
+    "B008",
 ]
 
 [tool.ruff.format]
@@ -43,5 +44,6 @@ line-ending = "auto"
 
 [dependency-groups]
 dev = [
+    "httpx2>=2.13.0",
     "pytest>=9.1.1",
 ]
