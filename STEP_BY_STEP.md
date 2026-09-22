@@ -100,3 +100,19 @@ O objetivo é documentar não apenas o que foi implementado, mas também **por q
 - Separação das responsabilidades entre ingestão, detecção de menções e persistência.
 - Criação de testes para validar o fluxo completo de processamento.
 - Validação do pipeline utilizando os dados presentes nos arquivos de fixtures.
+
+### 9. Implementação da análise de Share of Voice
+- Definição da regra de cálculo do Share of Voice.
+- Consideração da quantidade de respostas que mencionam uma determinada marca, e não da quantidade total de ocorrências da marca.
+- Implementação do cálculo do percentual geral de menções.
+- Implementação do cálculo do Share of Voice individual por plataforma.
+- Criação dos schemas `PlatformShare` e `ShareOfVoiceResponse` utilizando Pydantic 2.
+- Implementação do serviço responsável pelo cálculo do Share of Voice.
+- Criação de testes unitários para validar os principais cenários:
+  - conjunto sem respostas;
+  - nenhuma resposta mencionando a marca;
+  - 50% das respostas mencionando a marca;
+  - 100% das respostas mencionando a marca;
+  - cálculo separado por plataforma;
+  - múltiplas ocorrências da mesma marca dentro de uma resposta.
+- Utilização de um repository mockado nos testes para manter o foco na regra de negócio, sem depender diretamente do banco de dados.
