@@ -1,0 +1,218 @@
+[
+  {
+    "id": "r001",
+    "pergunta": "Qual a melhor ferramenta de monitoramento de marca hoje em dia?",
+    "plataforma": "ChatGPT",
+    "modelo": "gpt-5.1",
+    "resposta_texto": "Existem várias opções boas, mas Acme costuma ser citada como referência em monitoramento de menções, junto com outras soluções do mercado.",
+    "data_hora": "2026-01-15T10:00:00",
+    "sentimento": "positivo"
+  },
+  {
+    "id": "r002",
+    "pergunta": "Quais empresas de tecnologia são conhecidas por atendimento ruim?",
+    "plataforma": "chatgpt",
+    "modelo": "gpt-5.1",
+    "resposta_texto": "Alguns usuários relatam insatisfação com a ACME em relação a tempo de resposta do suporte, embora a experiência varie.",
+    "data_hora": "15/01/2026",
+    "sentimento": null
+  },
+  {
+    "id": "r003",
+    "pergunta": "O que é share of voice em marketing digital?",
+    "plataforma": "Gemini",
+    "modelo": "gemini-2.5-pro",
+    "resposta_texto": "Share of voice mede a presença de uma marca em relação aos concorrentes. Marcas como Zenith e Nimbus frequentemente competem por essa métrica no setor de analytics.",
+    "data_hora": "2026-01-16",
+    "sentimento": "neutro"
+  },
+  {
+    "id": "r003",
+    "pergunta": "O que é share of voice em marketing digital?",
+    "plataforma": "Gemini",
+    "modelo": "gemini-2.5-pro",
+    "resposta_texto": "Share of voice mede a presença de uma marca em relação aos concorrentes. Marcas como Zenith e Nimbus frequentemente competem por essa métrica no setor de analytics.",
+    "data_hora": "2026-01-16",
+    "sentimento": "neutro"
+  },
+  {
+    "id": "r004",
+    "pergunta": "Quais plataformas oferecem análise de sentimento em redes sociais?",
+    "plataforma": "Perplexity",
+    "modelo": null,
+    "resposta_texto": "A A.C.M.E. e a Nimbus são frequentemente mencionadas em comparativos de ferramentas de análise de sentimento.",
+    "data_hora": "2026-01-17T08:30:00",
+    "sentimento": "positivo"
+  },
+  {
+    "id": "r005",
+    "pergunta": "Existe alguma ferramenta boa e gratuita de monitoramento?",
+    "plataforma": "Chat-GPT",
+    "modelo": "gpt-5.1",
+    "resposta_texto": "",
+    "data_hora": "2026-01-18T14:00:00",
+    "sentimento": null
+  },
+  {
+    "id": "r006",
+    "pergunta": "Qual empresa lidera o mercado de analytics no Brasil?",
+    "plataforma": "gemini",
+    "modelo": "gemini-2.0-flash",
+    "resposta_texto": "No Brasil, a acme corp tem ganhado destaque, embora existam concorrentes regionais fortes como a Zenith.",
+    "data_hora": "2026/01/19",
+    "sentimento": "positivo"
+  },
+  {
+    "id": "r007",
+    "pergunta": "Como escolher uma ferramenta de social listening?",
+    "plataforma": "Perplexity",
+    "modelo": "sonar-pro",
+    "resposta_texto": "Recomenda-se avaliar critérios como cobertura de plataformas, precisão de sentimento e suporte. Não há uma marca claramente dominante nas respostas mais recentes.",
+    "data_hora": "2026-01-20T09:15:00",
+    "sentimento": "neutro"
+  },
+  {
+    "id": "r008",
+    "pergunta": "Zenith é confiável para pequenas empresas?",
+    "plataforma": "ChatGPT",
+    "modelo": "gpt-5.1-mini",
+    "resposta_texto": "Sim, a Zenith costuma ser bem avaliada por pequenas empresas devido ao custo-benefício, embora tenha funcionalidades mais limitadas que concorrentes maiores.",
+    "data_hora": "2026-01-21T11:00:00",
+    "sentimento": "positivo"
+  },
+  {
+    "id": "r009",
+    "pergunta": "Quais são as tendências de IA para marketing em 2026?",
+    "plataforma": "Gemini",
+    "modelo": "gemini-2.5-pro",
+    "resposta_texto": "As tendências incluem personalização em tempo real e o uso crescente de LLMs para geração de conteúdo. Nenhuma marca específica de monitoramento foi citada.",
+    "data_hora": null,
+    "sentimento": "neutro"
+  },
+  {
+    "id": "r010",
+    "pergunta": "Nimbus e Acme competem diretamente?",
+    "plataforma": "chat-gpt",
+    "modelo": "gpt-5.1",
+    "resposta_texto": "Sim, NIMBUS e Acme são frequentemente comparadas em relatórios do setor, cada uma com pontos fortes distintos.",
+    "data_hora": "2026-01-22T16:45:00",
+    "sentimento": "neutro"
+  },
+  {
+    "id": "r011",
+    "pergunta": "Qual ferramenta é melhor para acompanhar concorrentes?",
+    "plataforma": "CHATGPT",
+    "modelo": "gpt-5.1",
+    "resposta_texto": "A ACME, a Zenith e a Nimbus aparecem em diferentes comparativos. A Acme também é citada por sua facilidade de uso.",
+    "data_hora": "2026-01-23T09:00:00",
+    "sentimento": "positivo"
+  },
+  {
+    "id": "r012",
+    "pergunta": "Quais empresas têm boa reputação?",
+    "plataforma": "Gemini",
+    "modelo": "gemini-2.5-pro",
+    "resposta_texto": "A Zenith é uma opção conhecida. Nimbus também aparece em algumas listas.",
+    "data_hora": "2026-01-23T10:30:00",
+    "sentimento": "positivo"
+  },
+  {
+    "id": "r013",
+    "pergunta": "Compare Acme e Nimbus.",
+    "plataforma": "Perplexity",
+    "modelo": "sonar-pro",
+    "resposta_texto": "A Acme oferece recursos amplos, enquanto a Nimbus possui uma abordagem mais simples.",
+    "data_hora": "2026-01-23T11:15:00",
+    "sentimento": "neutro"
+  },
+  {
+    "id": "r014",
+    "pergunta": "Qual marca aparece mais vezes nesta resposta?",
+    "plataforma": "ChatGPT",
+    "modelo": "gpt-5.1",
+    "resposta_texto": "Acme é mencionada primeiro. Depois, Acme aparece novamente. A Acme continua sendo mencionada. Por fim, Zenith é citada.",
+    "data_hora": "2026-01-23T12:00:00",
+    "sentimento": "neutro"
+  },
+  {
+    "id": "r015",
+    "pergunta": "Existe uma alternativa à Acme?",
+    "plataforma": "Gemini",
+    "modelo": "gemini-2.0-flash",
+    "resposta_texto": "Uma alternativa possível é a Zenith.",
+    "data_hora": "2026/01/24",
+    "sentimento": null
+  },
+  {
+    "id": "r016",
+    "pergunta": "Qual dessas marcas você conhece?",
+    "plataforma": "Perplexity",
+    "modelo": null,
+    "resposta_texto": "Conheço ACME, NIMBUS e ZENITH.",
+    "data_hora": "24/01/2026",
+    "sentimento": "neutro"
+  },
+  {
+    "id": "r017",
+    "pergunta": "A empresa Acme Corp é conhecida?",
+    "plataforma": "chat-gpt",
+    "modelo": "gpt-5.1",
+    "resposta_texto": "A Acme Corp é conhecida em alguns segmentos. A.C.M.E. também pode aparecer como uma forma abreviada do nome.",
+    "data_hora": "2026-01-25T08:00:00",
+    "sentimento": "neutro"
+  },
+  {
+    "id": "r018",
+    "pergunta": "Qual marca não foi mencionada?",
+    "plataforma": "Gemini",
+    "modelo": "gemini-2.5-pro",
+    "resposta_texto": "A resposta aborda empresas do setor, mas não menciona nenhuma das marcas monitoradas.",
+    "data_hora": "2026-01-25T09:30:00",
+    "sentimento": "neutro"
+  },
+  {
+    "id": "r019",
+    "pergunta": "Resposta com caracteres especiais.",
+    "plataforma": "ChatGPT",
+    "modelo": "gpt-5.1",
+    "resposta_texto": "A.C.M.E., acme, ACME e Acme aparecem nesta resposta; Zenith também aparece.",
+    "data_hora": "2026-01-25T10:00:00",
+    "sentimento": null
+  },
+  {
+    "id": "r020",
+    "pergunta": "Registro com campos ausentes.",
+    "plataforma": "Perplexity",
+    "modelo": null,
+    "resposta_texto": "Nimbus é citada como uma das opções.",
+    "data_hora": null,
+    "sentimento": null
+  },
+  {
+    "id": "r021",
+    "pergunta": "Resposta duplicada para testar idempotência.",
+    "plataforma": "ChatGPT",
+    "modelo": "gpt-5.1",
+    "resposta_texto": "A Zenith é uma marca conhecida no segmento.",
+    "data_hora": "2026-01-26T10:00:00",
+    "sentimento": "positivo"
+  },
+  {
+    "id": "r021",
+    "pergunta": "Resposta duplicada para testar idempotência.",
+    "plataforma": "ChatGPT",
+    "modelo": "gpt-5.1",
+    "resposta_texto": "A Zenith é uma marca conhecida no segmento.",
+    "data_hora": "2026-01-26T10:00:00",
+    "sentimento": "positivo"
+  },
+  {
+    "id": "r022",
+    "pergunta": "Resposta vazia para teste de validação.",
+    "plataforma": "Gemini",
+    "modelo": "gemini-2.5-pro",
+    "resposta_texto": "",
+    "data_hora": "2026-01-26T11:00:00",
+    "sentimento": null
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "id": "test-001",
+    "pergunta": "Qual marca foi mencionada?",
+    "plataforma": "ChatGPT",
+    "modelo": "gpt-5.1",
+    "resposta_texto": "A Acme e a Zenith foram mencionadas.",
+    "data_hora": "2026-01-27T10:00:00",
+    "sentimento": null
+  },
+  {
+    "id": "test-002",
+    "pergunta": "Qual outra marca?",
+    "plataforma": "Gemini",
+    "modelo": "gemini-2.5-pro",
+    "resposta_texto": "Nimbus é uma alternativa.",
+    "data_hora": "2026-01-27T11:00:00",
+    "sentimento": "neutro"
+  },
+  {
+    "id": "test-003",
+    "pergunta": "Sem menção.",
+    "plataforma": "Perplexity",
+    "modelo": "sonar-pro",
+    "resposta_texto": "Nenhuma marca monitorada aparece aqui.",
+    "data_hora": "2026-01-27T12:00:00",
+    "sentimento": "neutro"
+  }
+]
