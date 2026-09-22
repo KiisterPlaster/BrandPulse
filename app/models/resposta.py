@@ -20,6 +20,7 @@ class Resposta(Base):
     resposta_texto: Mapped[str] = mapped_column(Text, nullable=False)
     data_hora: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     sentimento: Mapped[str | None] = mapped_column(String(50), nullable=True)
+
     mencoes: Mapped[list["Mencao"]] = relationship(
         back_populates="resposta", cascade="all, delete-orphan"
     )

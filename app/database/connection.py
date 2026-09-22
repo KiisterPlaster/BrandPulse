@@ -13,10 +13,3 @@ SessionLocal = sessionmaker(
     autocommit=False,
     autoflush=False,
 )
-
-
-def create_tables() -> None:
-
-    from app.database.tables import Base
-
-    Base.metadata.create_all(bind=engine)
