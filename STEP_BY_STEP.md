@@ -34,3 +34,17 @@ O objetivo é documentar não apenas o que foi implementado, mas também **por q
 - Criação de arquivos JSON com diferentes conjuntos de dados para desenvolvimento e testes.
 - Criação de uma fixture mínima para utilização nos testes.
 - Avaliação inicial das regras de validação dos dados.
+
+### 4. Testes da modelagem e do banco de dados
+- Configuração do Pytest como ferramenta de testes automatizados.
+- Criação de testes para os modelos `Resposta` e `Mencao`.
+- Criação de testes para os schemas Pydantic responsáveis pela validação dos dados.
+- Testes da criação de respostas e menções no banco de dados.
+- Teste do relacionamento entre `Resposta` e `Mencao`.
+- Teste do armazenamento da quantidade de ocorrências de cada menção.
+- Criação de um banco SQLite em memória para os testes, evitando alterações no banco utilizado pela aplicação.
+- Testes da conexão com o banco de dados.
+- Teste da criação das tabelas definidas pelo SQLAlchemy.
+- Durante a execução dos testes, foi identificado um `DetachedInstanceError` ao tentar acessar o relacionamento `mencoes` após o encerramento da sessão.
+- O problema foi corrigido mantendo o acesso aos relacionamentos dentro da sessão ativa, respeitando o comportamento de carregamento lazy do SQLAlchemy.
+- Ao final da etapa, foram executados os testes automatizados e as verificações de qualidade com Ruff.
