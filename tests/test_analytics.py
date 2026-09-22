@@ -1,9 +1,14 @@
 from datetime import datetime
 from unittest.mock import Mock
 
+from app.models.mencao import Mencao
 from app.models.resposta import Resposta
 from app.schemas.analytics import ShareOfVoiceResponse
-from app.services.analytics import calcular_share_of_voice
+from app.services.analytics import (
+    calcular_score_citacao,
+    calcular_share_of_voice,
+    obter_top_citacoes,
+)
 
 
 def criar_resposta(
@@ -29,6 +34,11 @@ def criar_repository(respostas, respostas_com_marca):
     repository.listar_por_marca.return_value = respostas_com_marca
 
     return repository
+
+
+# ---------------------------------------------------------------------------
+# Share of Voice
+# ---------------------------------------------------------------------------
 
 
 def test_share_of_voice_sem_respostas():
@@ -137,8 +147,7 @@ def test_share_of_voice_por_plataforma():
     assert resultado.percentual == 60.0
 
     plataformas = {
-        plataforma.plataforma: plataforma
-        for plataforma in resultado.por_plataforma
+        plataforma.plataforma: plataforma for plataforma in resultado.por_plataforma
     }
 
     assert plataformas["ChatGPT"].total_respostas == 3
@@ -175,3 +184,220 @@ def test_multiplas_ocorrencias_da_marca_contam_como_uma_resposta():
     assert resultado.total_respostas == 2
     assert resultado.respostas_com_mencao == 1
     assert resultado.percentual == 50.0
+
+
+# ---------------------------------------------------------------------------
+# Score de citação
+# ---------------------------------------------------------------------------
+
+
+def test_score_citacao_com_uma_marca():
+    resposta = criar_resposta("1", "ChatGPT")
+
+    resposta.mencoes = [
+        Mencao(
+            marca="Acme",
+            ocorrencias=1,
+        )
+    ]
+
+    resultado = calcular_score_citacao(resposta)
+
+    assert resultado == 3
+
+
+def test_score_citacao_com_multiplas_marcas():
+    resposta = criar_resposta("1", "ChatGPT")
+
+    resposta.mencoes = [
+        Mencao(
+            marca="Acme",
+            ocorrencias=2,
+        ),
+        Mencao(
+            marca="Zenith",
+            ocorrencias=1,
+        ),
+    ]
+
+    resultado = calcular_score_citacao(resposta)
+
+    assert resultado == 7
+
+
+def test_score_citacao_com_multiplas_ocorrencias():
+    resposta = criar_resposta("1", "ChatGPT")
+
+    resposta.mencoes = [
+        Mencao(
+            marca="Acme",
+            ocorrencias=5,
+        )
+    ]
+
+    resultado = calcular_score_citacao(resposta)
+
+    assert resultado == 7
+
+
+def test_score_citacao_sem_mencoes():
+    resposta = criar_resposta("1", "ChatGPT")
+
+    resposta.mencoes = []
+
+    resultado = calcular_score_citacao(resposta)
+
+    assert resultado == 0
+
+
+# ---------------------------------------------------------------------------
+# Top Citações
+# ---------------------------------------------------------------------------
+
+
+def test_obter_top_citacoes_ordena_por_score():
+    resposta_1 = criar_resposta("1", "ChatGPT")
+    resposta_1.mencoes = [
+        Mencao(
+            marca="Acme",
+            ocorrencias=1,
+        )
+    ]
+
+    resposta_2 = criar_resposta("2", "Gemini")
+    resposta_2.mencoes = [
+        Mencao(
+            marca="Acme",
+            ocorrencias=2,
+        ),
+        Mencao(
+            marca="Zenith",
+            ocorrencias=1,
+        ),
+    ]
+
+    resposta_3 = criar_resposta("3", "Perplexity")
+    resposta_3.mencoes = [
+        Mencao(
+            marca="Nimbus",
+            ocorrencias=3,
+        )
+    ]
+
+    resultado = obter_top_citacoes(
+        [resposta_1, resposta_2, resposta_3],
+        3,
+    )
+
+    assert len(resultado) == 3
+
+    assert resultado[0].resposta_id == "2"
+    assert resultado[0].score == 7
+
+    assert resultado[1].resposta_id == "3"
+    assert resultado[1].score == 5
+
+    assert resultado[2].resposta_id == "1"
+    assert resultado[2].score == 3
+
+
+def test_obter_top_citacoes_respeita_limite_n():
+    respostas = []
+
+    for i in range(5):
+        resposta = criar_resposta(
+            str(i),
+            "ChatGPT",
+        )
+
+        resposta.mencoes = [
+            Mencao(
+                marca="Acme",
+                ocorrencias=i + 1,
+            )
+        ]
+
+        respostas.append(resposta)
+
+    resultado = obter_top_citacoes(respostas, 2)
+
+    assert len(resultado) == 2
+    assert resultado[0].resposta_id == "4"
+    assert resultado[1].resposta_id == "3"
+
+
+def test_obter_top_citacoes_ignora_respostas_sem_mencoes():
+    resposta_com_mencao = criar_resposta("1", "ChatGPT")
+    resposta_com_mencao.mencoes = [
+        Mencao(
+            marca="Acme",
+            ocorrencias=1,
+        )
+    ]
+
+    resposta_sem_mencao = criar_resposta("2", "Gemini")
+    resposta_sem_mencao.mencoes = []
+
+    resultado = obter_top_citacoes(
+        [
+            resposta_com_mencao,
+            resposta_sem_mencao,
+        ],
+        5,
+    )
+
+    assert len(resultado) == 1
+    assert resultado[0].resposta_id == "1"
+
+
+def test_obter_top_citacoes_retorna_marcas():
+    resposta = criar_resposta("1", "ChatGPT")
+
+    resposta.mencoes = [
+        Mencao(
+            marca="Acme",
+            ocorrencias=2,
+        ),
+        Mencao(
+            marca="Zenith",
+            ocorrencias=1,
+        ),
+        Mencao(
+            marca="Nimbus",
+            ocorrencias=1,
+        ),
+    ]
+
+    resultado = obter_top_citacoes([resposta], 1)
+
+    assert resultado[0].marcas == [
+        "Acme",
+        "Zenith",
+        "Nimbus",
+    ]
+
+
+def test_obter_top_citacoes_retorna_dados_da_resposta():
+    resposta = criar_resposta(
+        "resposta-001",
+        "ChatGPT",
+        "A Acme é uma excelente opção.",
+    )
+
+    resposta.modelo = "gpt-5"
+
+    resposta.mencoes = [
+        Mencao(
+            marca="Acme",
+            ocorrencias=1,
+        )
+    ]
+
+    resultado = obter_top_citacoes([resposta], 1)
+
+    assert resultado[0].resposta_id == "resposta-001"
+    assert resultado[0].plataforma == "ChatGPT"
+    assert resultado[0].modelo == "gpt-5"
+    assert resultado[0].resposta_texto == ("A Acme é uma excelente opção.")
+    assert resultado[0].marcas == ["Acme"]
+    assert resultado[0].score == 3

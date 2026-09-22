@@ -116,3 +116,32 @@ O objetivo é documentar não apenas o que foi implementado, mas também **por q
   - cálculo separado por plataforma;
   - múltiplas ocorrências da mesma marca dentro de uma resposta.
 - Utilização de um repository mockado nos testes para manter o foco na regra de negócio, sem depender diretamente do banco de dados.
+
+### 10. Implementação e testes do serviço de Analytics
+- Implementação da função `calcular_share_of_voice()`.
+- Cálculo do percentual de respostas que mencionam determinada marca.
+- Cálculo do Share of Voice geral.
+- Cálculo do Share of Voice separado por plataforma.
+- Tratamento do cenário em que não existem respostas.
+- Implementação da função `calcular_score_citacao()`.
+- Definição do critério utilizado para determinar uma citação forte.
+- O score considera:
+  - quantidade de marcas distintas mencionadas;
+  - quantidade total de ocorrências das marcas.
+- Implementação da função `obter_top_citacoes()`.
+- Filtragem das respostas que possuem pelo menos uma menção.
+- Ordenação das respostas de acordo com o score de citação.
+- Implementação do limite de resultados utilizando o parâmetro `n`.
+- Conversão das respostas para o schema `TopCitacaoResponse`.
+- Criação dos testes para o cálculo do Share of Voice.
+- Teste do percentual geral de menções.
+- Teste do percentual de menções por plataforma.
+- Teste de cenários sem respostas e sem menções.
+- Testes para o cálculo do score de citação.
+- Validação do impacto da quantidade de marcas distintas no score.
+- Validação do impacto da quantidade de ocorrências no score.
+- Testes da ordenação das Top Citações.
+- Teste do limite de resultados retornados.
+- Validação de que respostas sem menções são ignoradas.
+- Validação dos dados retornados pelo serviço de Top Citações.
+

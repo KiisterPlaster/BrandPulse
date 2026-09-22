@@ -1,7 +1,9 @@
+from app.models.resposta import Resposta
 from app.repositories.respostas import RespostaRepository
 from app.schemas.analytics import (
     PlatformShare,
     ShareOfVoiceResponse,
+    TopCitacaoResponse,
 )
 
 
@@ -64,6 +66,39 @@ def calcular_share_of_voice(
         percentual=percentual,
         por_plataforma=por_plataforma,
     )
+
+
+def calcular_score_citacao(resposta: Resposta) -> float:
+    marcas_distintas = len(resposta.mencoes)
+
+    ocorrencias_totais = sum(mencao.ocorrencias for mencao in resposta.mencoes)
+
+    return (marcas_distintas * 2) + ocorrencias_totais
+
+
+def obter_top_citacoes(
+    respostas: list[Resposta],
+    n: int,
+) -> list[TopCitacaoResponse]:
+    respostas_com_mencoes = [resposta for resposta in respostas if resposta.mencoes]
+
+    respostas_ordenadas = sorted(
+        respostas_com_mencoes,
+        key=calcular_score_citacao,
+        reverse=True,
+    )
+
+    return [
+        TopCitacaoResponse(
+            resposta_id=resposta.id,
+            plataforma=resposta.plataforma,
+            modelo=resposta.modelo,
+            resposta_texto=resposta.resposta_texto,
+            marcas=[mencao.marca for mencao in resposta.mencoes],
+            score=calcular_score_citacao(resposta),
+        )
+        for resposta in respostas_ordenadas[:n]
+    ]
 
 
 if __name__ == "__main__":
