@@ -1,0 +1,28 @@
+[
+    {
+        "id": "valida-001",
+        "pergunta": "Qual a melhor marca?",
+        "plataforma": "ChatGPT",
+        "modelo": "gpt-5",
+        "resposta_texto": "A Acme é uma boa opção.",
+        "data_hora": "2026-09-22T10:00:00",
+        "sentimento": "positivo"
+    },
+    {
+        "id": "invalida-001",
+        "pergunta": "Qual a melhor marca?",
+        "plataforma": "ChatGPT",
+        "modelo": "gpt-5",
+        "data_hora": "data-invalida",
+        "sentimento": "positivo"
+    },
+    {
+        "id": "valida-002",
+        "pergunta": "Compare Acme e Zenith.",
+        "plataforma": "Gemini",
+        "modelo": "gemini-2",
+        "resposta_texto": "Acme e Zenith são opções.",
+        "data_hora": "2026-09-22T11:00:00",
+        "sentimento": null
+    }
+]

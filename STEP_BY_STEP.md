@@ -71,3 +71,20 @@ O objetivo é documentar não apenas o que foi implementado, mas também **por q
   - diferenças entre letras maiúsculas e minúsculas;
   - variações de escrita;
   - textos com possíveis falsos positivos.
+
+### 6. Implementação da ingestão de dados
+- Implementação do serviço responsável pela leitura dos arquivos JSON.
+- Utilização do Pydantic para validar os registros durante a ingestão.
+- Tratamento de registros inválidos sem interromper o processamento dos demais registros.
+- Validação de que os arquivos de entrada possuem uma lista de respostas.
+- Integração da ingestão com o schema `RespostaCreate`.
+- Criação e organização de fixtures específicas para testar diferentes cenários de entrada:
+  - `respostas_minimas.json`
+  - `respostas_teste.json`
+  - `respostas_validas.json`
+  - `respostas_invalidas.json`
+- Criação de testes para arquivos válidos e inválidos.
+- Teste do comportamento para arquivos inexistentes.
+- Teste do comportamento para arquivos que não possuem uma lista de respostas.
+- Validação de que os registros carregados pela ingestão são instâncias de `RespostaCreate`.
+- Execução dos testes automatizados e das verificações de qualidade com Ruff.
