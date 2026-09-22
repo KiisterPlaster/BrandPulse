@@ -181,3 +181,14 @@ O objetivo é documentar não apenas o que foi implementado, mas também **por q
 - Organização da documentação de acordo com a responsabilidade de cada camada da aplicação.
 - Revisão da estrutura do projeto após a implementação da API.
 - Verificação da qualidade e padronização do código com Ruff.
+
+### 13. Documentação e organização do projeto
+
+- Organização da documentação do projeto em uma estrutura própria.
+- Criação da pasta `docs/` para centralizar a documentação.
+- Criação da pasta `docs/documentacoes/` para documentação técnica dos componentes.
+- Criação da documentação da API e de seus endpoints.
+- Organização e documentação da estrutura de diretórios do projeto.
+- Padronização da documentação utilizando arquivos Markdown.
+- Inclusão de descrições sobre responsabilidades, entradas, saídas e funcionamento dos componentes.
+- Preparação da documentação para facilitar a manutenção e compreensão do projeto.
