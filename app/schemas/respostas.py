@@ -37,7 +37,6 @@ class RespostaCreate(BaseModel):
             except ValueError:
                 continue
 
-        # Deixa o Pydantic gerar o erro de validação
         return valor
 
 
@@ -49,7 +48,7 @@ class MencaoResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    resposta_id: str
+    resposta_id: int
     marca: str
     ocorrencias: int
 
@@ -57,7 +56,8 @@ class MencaoResponse(BaseModel):
 class RespostaResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
-    id: str
+    id: int
+    resposta_id: str
     pergunta: str
     plataforma: str
     modelo: str | None
@@ -65,3 +65,8 @@ class RespostaResponse(BaseModel):
     data_hora: datetime
     sentimento: str | None
     mencoes: list[MencaoResponse]
+
+
+class StatusResponse(BaseModel):
+    message: str
+    respostas_invalidas: list[dict]

@@ -1,7 +1,7 @@
 from datetime import datetime
 from typing import TYPE_CHECKING
 
-from sqlalchemy import DateTime, String, Text
+from sqlalchemy import DateTime, Integer, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database.tables import Base
@@ -13,7 +13,8 @@ if TYPE_CHECKING:
 class Resposta(Base):
     __tablename__ = "respostas"
 
-    id: Mapped[str] = mapped_column(String(100), primary_key=True)
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    resposta_id: Mapped[str] = mapped_column(String(100), nullable=False)
     pergunta: Mapped[str] = mapped_column(Text, nullable=False)
     plataforma: Mapped[str] = mapped_column(String(100), nullable=False)
     modelo: Mapped[str | None] = mapped_column(String(100), nullable=True)

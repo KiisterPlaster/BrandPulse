@@ -22,9 +22,6 @@ class RespostaRepository:
     def criar(self, resposta: Resposta) -> Resposta:
         """
         Persiste uma resposta no banco de dados.
-
-        Após a confirmação da transação, atualiza o objeto com os
-        dados gerados pelo banco e retorna a resposta persistida.
         """
         self.session.add(resposta)
         self.session.commit()
@@ -32,11 +29,9 @@ class RespostaRepository:
 
         return resposta
 
-    def buscar_por_id(self, resposta_id: str) -> Resposta | None:
+    def buscar_por_id(self, resposta_id: int) -> Resposta | None:
         """
-        Busca uma resposta pelo seu identificador.
-
-        Retorna a resposta encontrada ou None caso não exista.
+        Busca uma resposta pelo ID interno do banco.
         """
         return self.session.get(Resposta, resposta_id)
 
@@ -48,13 +43,24 @@ class RespostaRepository:
 
         return list(self.session.scalars(statement).all())
 
-    def existe(self, resposta_id: str) -> bool:
+    def existe_duplicata(self, resposta: Resposta) -> bool:
         """
-        Verifica se uma resposta existe pelo seu identificador.
+        Verifica se já existe no banco uma resposta com os mesmos
+        dados, desconsiderando o identificador original da resposta.
 
-        Retorna True quando a resposta existe e False caso contrário.
+        O ID interno do banco também não é considerado, pois ele é
+        gerado automaticamente.
         """
-        return self.buscar_por_id(resposta_id) is not None
+        statement = select(Resposta).where(
+            Resposta.pergunta == resposta.pergunta,
+            Resposta.plataforma == resposta.plataforma,
+            Resposta.modelo == resposta.modelo,
+            Resposta.resposta_texto == resposta.resposta_texto,
+            Resposta.data_hora == resposta.data_hora,
+            Resposta.sentimento == resposta.sentimento,
+        )
+
+        return self.session.scalar(statement) is not None
 
     def listar_por_marca(self, marca: str) -> list[Resposta]:
         """

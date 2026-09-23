@@ -25,20 +25,26 @@ def get_repository():
     status_code=status.HTTP_201_CREATED,
     summary="Cria novas respostas",
     description=(
-        "Recebe uma lista de respostas, detecta automaticamente "
-        "as menções de marcas presentes no texto e persiste "
-        "as respostas e suas respectivas menções."
+        "Recebe uma lista de respostas, valida cada item individualmente, "
+        "descarta os dados inválidos, detecta automaticamente as menções "
+        "de marcas presentes no texto e persiste as respostas válidas "
+        "e suas respectivas menções."
     ),
-    response_description="Lista das respostas criadas.",
+    response_description="Lista das respostas válidas criadas.",
 )
 def criar_respostas(
-    dados: list[RespostaCreate],
+    dados: list[dict],
     repository: RespostaRepository = Depends(get_repository),
 ):
     respostas = []
 
     for dado in dados:
-        mencoes_detectadas = detectar_mencoes(dado.resposta_texto)
+        try:
+            resposta_validada = RespostaCreate.model_validate(dado)
+        except Exception:
+            continue
+
+        mencoes_detectadas = detectar_mencoes(resposta_validada.resposta_texto)
 
         mencoes = [
             Mencao(
@@ -49,15 +55,18 @@ def criar_respostas(
         ]
 
         resposta = Resposta(
-            id=dado.id,
-            pergunta=dado.pergunta,
-            plataforma=dado.plataforma,
-            modelo=dado.modelo,
-            resposta_texto=dado.resposta_texto,
-            data_hora=dado.data_hora,
-            sentimento=dado.sentimento,
+            resposta_id=resposta_validada.id,
+            pergunta=resposta_validada.pergunta,
+            plataforma=resposta_validada.plataforma,
+            modelo=resposta_validada.modelo,
+            resposta_texto=resposta_validada.resposta_texto,
+            data_hora=resposta_validada.data_hora,
+            sentimento=resposta_validada.sentimento,
             mencoes=mencoes,
         )
+
+        if repository.existe_duplicata(resposta):
+            continue
 
         repository.criar(resposta)
         respostas.append(resposta)
