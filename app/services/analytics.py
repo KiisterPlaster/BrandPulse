@@ -11,16 +11,6 @@ def calcular_share_of_voice(
     repository: RespostaRepository,
     marca: str,
 ) -> ShareOfVoiceResponse:
-    """
-    Calcula o Share of Voice de uma marca.
-
-    O cálculo considera a quantidade total de respostas e quantas
-    dessas respostas possuem menção à marca informada.
-
-    Também calcula o Share of Voice separadamente para cada plataforma.
-
-    Retorna zero quando não existem respostas cadastradas.
-    """
     respostas = repository.listar()
 
     total_respostas = len(respostas)
@@ -43,7 +33,10 @@ def calcular_share_of_voice(
     plataformas = {}
 
     for resposta in respostas:
-        plataformas.setdefault(resposta.plataforma, []).append(resposta)
+        plataformas.setdefault(
+            resposta.plataforma,
+            [],
+        ).append(resposta)
 
     por_plataforma = []
 
@@ -51,7 +44,7 @@ def calcular_share_of_voice(
         total = len(respostas_plataforma)
 
         ids_com_marca = {
-            resposta.id
+            resposta.resposta_id
             for resposta in respostas_com_marca
             if resposta.plataforma == plataforma
         }
@@ -109,6 +102,7 @@ def obter_top_citacoes(
     As respostas são ordenadas pelo score em ordem decrescente
     e limitadas à quantidade solicitada pelo parâmetro n.
     """
+
     respostas_com_mencoes = [resposta for resposta in respostas if resposta.mencoes]
 
     respostas_ordenadas = sorted(
@@ -119,7 +113,7 @@ def obter_top_citacoes(
 
     return [
         TopCitacaoResponse(
-            resposta_id=resposta.id,
+            resposta_id=resposta.resposta_id,
             plataforma=resposta.plataforma,
             modelo=resposta.modelo,
             resposta_texto=resposta.resposta_texto,
