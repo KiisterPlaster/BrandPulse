@@ -1,49 +1,62 @@
 # Documentação da API
 
-A API do BrandPulse é construída com FastAPI e disponibiliza ingestão, análise e health check.
+## 5. Códigos de resposta HTTP
 
-## Endpoints
+A API utiliza códigos de status HTTP para indicar o resultado do processamento de cada requisição.
 
-| Método | Endpoint | Finalidade |
-|---|---|---|
-| `GET` | `/health` | Verificar se a aplicação está disponível. |
-| `GET` | `/share-of-voice` | Calcular a presença de uma marca nas respostas. |
-| `GET` | `/top-citacoes` | Retornar as respostas com maior score de citação. |
-| `POST` | `/respostas` | Validar, processar e persistir novas respostas. |
+### GET /share-of-voice
 
-A documentação OpenAPI interativa é disponibilizada pelo FastAPI em `/docs`.
+| Código | Descrição |
+|---|---|
+| `200 OK` | Requisição processada com sucesso. |
+| `422 Unprocessable Content` | Parâmetro `marca` ausente, vazio ou inválido. |
+
+### GET /top-citacoes
+
+| Código | Descrição |
+|---|---|
+| `200 OK` | Requisição processada com sucesso. |
+| `422 Unprocessable Content` | Parâmetro `n` inválido ou menor que `1`. |
+
+### POST /respostas
+
+| Código | Descrição |
+|---|---|
+| `201 Created` | Respostas criadas e persistidas com sucesso. |
+| `422 Unprocessable Content` | Dados enviados não atendem aos schemas de validação. |
+
+### Código 422 — Erro de validação
+
+O código `422 Unprocessable Content` é utilizado quando os dados recebidos não atendem às regras de validação definidas pelos schemas Pydantic ou pelos parâmetros dos endpoints.
+
+Entre os casos tratados estão:
+
+- parâmetros obrigatórios ausentes;
+- parâmetros com valores inválidos;
+- `n` menor que `1`;
+- `id` vazio;
+- `pergunta` ausente;
+- `plataforma` ausente;
+- `resposta_texto` ausente ou vazio;
+- payload incompleto;
+- payload em formato incompatível;
+- `data_hora` em formato não reconhecido.
 
 ---
 
-## `GET /health`
+## 6. Exemplos de requisições e respostas
 
-Retorna o estado básico da aplicação.
+### 6.1 GET /share-of-voice
 
-### Resposta `200`
+Calcula a participação de uma marca entre as respostas cadastradas.
 
-```json
-{"status": "ok"}
-```
-
----
-
-## `GET /share-of-voice`
-
-Calcula o percentual de respostas que mencionam a marca informada e apresenta o resultado também por plataforma.
-
-### Parâmetro
-
-| Parâmetro | Tipo | Regra |
-|---|---|---|
-| `marca` | `string` | obrigatório e não vazio |
-
-### Exemplo
+#### Requisição
 
 ```http
 GET /share-of-voice?marca=Acme
 ```
 
-### Resposta `200`
+#### Resposta — 200 OK
 
 ```json
 {
@@ -57,40 +70,46 @@ GET /share-of-voice?marca=Acme
       "respostas_com_mencao": 2,
       "total_respostas": 2,
       "percentual": 100.0
+    },
+    {
+      "plataforma": "Gemini",
+      "respostas_com_mencao": 0,
+      "total_respostas": 1,
+      "percentual": 0.0
     }
   ]
 }
 ```
 
-O cálculo considera respostas, e não o número de ocorrências da marca dentro de uma resposta:
+#### Exemplo de erro — 422
 
-```text
-SOV = (respostas com menção / total de respostas) × 100
+```http
+GET /share-of-voice
 ```
 
-### Erros
+```json
+{
+  "detail": [
+    {
+      "type": "missing",
+      "loc": ["query", "marca"],
+      "msg": "Field required"
+    }
+  ]
+}
+```
 
-`422 Unprocessable Content` quando `marca` está ausente, vazia ou inválida.
+### 6.2 GET /top-citacoes
 
----
+Retorna as respostas com maior score de citação.
 
-## `GET /top-citacoes`
-
-Retorna até `n` respostas com maior score de citação.
-
-### Parâmetro
-
-| Parâmetro | Tipo | Padrão | Regra |
-|---|---|---:|---|
-| `n` | `integer` | `5` | deve ser `>= 1` |
-
-### Exemplo
+#### Requisição
 
 ```http
 GET /top-citacoes?n=2
 ```
 
-### Resposta `200`
+#### Resposta — 200 OK
 
 ```json
 [
@@ -101,39 +120,43 @@ GET /top-citacoes?n=2
     "resposta_texto": "Acme e Zenith são conhecidas.",
     "marcas": ["Acme", "Zenith"],
     "score": 6.0
+  },
+  {
+    "resposta_id": "r003",
+    "plataforma": "Gemini",
+    "modelo": "gemini-2.5-pro",
+    "resposta_texto": "Zenith é uma opção.",
+    "marcas": ["Zenith"],
+    "score": 5.0
   }
 ]
 ```
 
-O score utilizado atualmente é:
+O parâmetro `n` determina a quantidade máxima de resultados retornados. Quando não informado, o valor padrão é `5`.
 
-```text
-score = (2 × marcas_distintas) + ocorrencias_totais
+#### Exemplo de erro — 422
+
+```http
+GET /top-citacoes?n=0
 ```
 
-Apenas respostas com pelo menos uma menção participam do ranking.
+```json
+{
+  "detail": [
+    {
+      "type": "greater_than_equal",
+      "loc": ["query", "n"],
+      "msg": "Input should be greater than or equal to 1"
+    }
+  ]
+}
+```
 
-### Erros
+### 6.3 POST /respostas
 
-`422 Unprocessable Content` quando `n < 1` ou possui formato inválido.
+Cria uma ou mais respostas e realiza automaticamente a detecção das menções presentes no texto.
 
----
-
-## `POST /respostas`
-
-Recebe uma lista de respostas. Cada item é validado individualmente.
-
-O processamento inclui:
-
-1. validação pelo `RespostaCreate`;
-2. normalização da data;
-3. detecção das marcas monitoradas;
-4. normalização da plataforma;
-5. criação das entidades de menção;
-6. verificação de duplicidade;
-7. persistência no SQLite.
-
-### Exemplo
+#### Requisição
 
 ```http
 POST /respostas
@@ -144,47 +167,89 @@ Content-Type: application/json
 [
   {
     "id": "r100",
-    "pergunta": "Qual ferramenta é recomendada?",
+    "pergunta": "Qual a melhor ferramenta de monitoramento?",
     "plataforma": "ChatGPT",
     "modelo": "gpt-5.1",
     "resposta_texto": "A Acme é uma boa opção. A Zenith também é conhecida.",
-    "data_hora": "2026-09-22T10:00:00",
+    "data_hora": "2026-01-20T10:00:00",
     "sentimento": "positivo"
   }
 ]
 ```
 
-### Resposta `201`
+#### Resposta — 201 Created
 
-A API retorna as respostas criadas, incluindo as menções detectadas.
+```json
+[
+  {
+    "id": "r100",
+    "pergunta": "Qual a melhor ferramenta de monitoramento?",
+    "plataforma": "ChatGPT",
+    "modelo": "gpt-5.1",
+    "resposta_texto": "A Acme é uma boa opção. A Zenith também é conhecida.",
+    "data_hora": "2026-01-20T10:00:00",
+    "sentimento": "positivo",
+    "mencoes": [
+      {
+        "id": 1,
+        "resposta_id": "r100",
+        "marca": "Acme",
+        "ocorrencias": 1
+      },
+      {
+        "id": 2,
+        "resposta_id": "r100",
+        "marca": "Zenith",
+        "ocorrencias": 1
+      }
+    ]
+  }
+]
+```
 
-### Validação parcial
+### 6.4 Criando múltiplas respostas
 
-Um item inválido não impede o processamento dos demais. Se nenhuma resposta válida for criada, a API retorna `422` com a relação de dados inválidos.
+O endpoint também aceita uma lista contendo várias respostas.
 
-### Duplicidade
+#### Requisição
 
-Registros identificados como duplicados são ignorados. Se houver ao menos uma nova resposta válida, o endpoint mantém o status `201` e retorna as respostas criadas.
+```http
+POST /respostas
+Content-Type: application/json
+```
 
----
+```json
+[
+  {
+    "id": "r101",
+    "pergunta": "Qual ferramenta é recomendada?",
+    "plataforma": "ChatGPT",
+    "modelo": "gpt-5.1",
+    "resposta_texto": "A Acme é uma boa opção.",
+    "data_hora": "2026-01-20T10:00:00",
+    "sentimento": "positivo"
+  },
+  {
+    "id": "r102",
+    "pergunta": "Qual empresa é conhecida?",
+    "plataforma": "Gemini",
+    "modelo": "gemini-2.5-pro",
+    "resposta_texto": "A Zenith é uma empresa conhecida.",
+    "data_hora": "2026-01-20T11:00:00",
+    "sentimento": "neutro"
+  }
+]
+```
 
-## Códigos HTTP
+#### Resposta — 201 Created
 
-| Código | Uso |
-|---|---|
-| `200` | Consulta ou health check concluído. |
-| `201` | Novas respostas persistidas. |
-| `404` | Rota inexistente. |
-| `422` | Parâmetros ou payload inválidos, ou nenhuma nova resposta criada. |
-| `429` | Limite de requisições excedido. |
+A API retorna uma lista contendo as respostas criadas e as respectivas menções detectadas.
 
-A aplicação possui tratamento próprio para rotas inexistentes e para exceder o rate limit.
+### 6.5 Formatos de data aceitos
 
----
+O campo `data_hora` possui normalização durante a validação da entrada.
 
-## Datas aceitas
-
-O campo `data_hora` aceita:
+Os formatos atualmente aceitos são:
 
 ```text
 YYYY-MM-DDTHH:MM:SS
@@ -194,4 +259,4 @@ DD/MM/YYYY
 YYYY/MM/DD
 ```
 
-Após a validação, o valor é representado como `datetime`.
+Valores que não correspondem a nenhum dos formatos suportados resultam em erro de validação `422`.

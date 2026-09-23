@@ -1,4 +1,4 @@
-from sqlalchemy import func, select
+from sqlalchemy import func, or_, select
 from sqlalchemy.orm import Session
 
 from app.models.mencao import Mencao
@@ -50,19 +50,21 @@ class RespostaRepository:
 
     def existe_duplicata(self, resposta: Resposta) -> bool:
         """
-        Verifica se já existe no banco uma resposta com os mesmos
-        dados, desconsiderando o identificador original da resposta.
-
-        O ID interno do banco também não é considerado, pois ele é
-        gerado automaticamente.
+        Verifica se o identificador externo já foi processado ou se já existe
+        uma resposta com o mesmo conteúdo. Isso torna reprocessamentos do
+        arquivo idempotentes e também cobre duplicatas semânticas com outro ID.
         """
+        mesmo_conteudo = (
+            (Resposta.pergunta == resposta.pergunta)
+            & (Resposta.plataforma == resposta.plataforma)
+            & (Resposta.modelo == resposta.modelo)
+            & (Resposta.resposta_texto == resposta.resposta_texto)
+            & (Resposta.data_hora == resposta.data_hora)
+            & (Resposta.sentimento == resposta.sentimento)
+        )
+
         statement = select(Resposta).where(
-            Resposta.pergunta == resposta.pergunta,
-            Resposta.plataforma == resposta.plataforma,
-            Resposta.modelo == resposta.modelo,
-            Resposta.resposta_texto == resposta.resposta_texto,
-            Resposta.data_hora == resposta.data_hora,
-            Resposta.sentimento == resposta.sentimento,
+            or_(Resposta.resposta_id == resposta.resposta_id, mesmo_conteudo)
         )
 
         return self.session.scalar(statement) is not None

@@ -186,6 +186,16 @@ def test_multiplas_ocorrencias_da_marca_contam_como_uma_resposta():
     assert resultado.percentual == 50.0
 
 
+def test_score_prioriza_diversidade_com_peso_dois():
+    resposta = criar_resposta("1", "ChatGPT")
+    resposta.mencoes = [
+        Mencao(marca="Acme", ocorrencias=2),
+        Mencao(marca="Zenith", ocorrencias=1),
+    ]
+
+    assert calcular_score_citacao(resposta) == 7
+
+
 def test_share_of_voice_marca_case_insensitive():
     respostas = [
         criar_resposta(

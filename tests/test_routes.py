@@ -39,6 +39,25 @@ def test_criar_respostas_com_sucesso(client):
     assert resposta["mencoes"][0]["ocorrencias"] == 1
 
 
+def test_criar_uma_resposta_com_objeto_json(client):
+    dado = {
+        "id": "r-individual",
+        "pergunta": "Qual marca aparece?",
+        "plataforma": "chat-gpt",
+        "modelo": "gpt-5",
+        "resposta_texto": "A A.C.M.E. aparece nesta resposta.",
+        "data_hora": "2026-09-22T10:00:00",
+        "sentimento": None,
+    }
+
+    response = client.post("/respostas", json=dado)
+
+    assert response.status_code == 201
+    assert response.json()["resposta_id"] == "r-individual"
+    assert response.json()["plataforma"] == "ChatGPT"
+    assert response.json()["mencoes"][0]["marca"] == "Acme"
+
+
 def test_criar_respostas_com_dados_invalidos(client):
     dados = [
         {
@@ -110,6 +129,26 @@ def test_criar_respostas_ignora_duplicada(client):
         == "Todos os dados enviados já estão no banco de dados "
         "ou você enviou apenas dados inválidos."
     )
+
+
+def test_criar_respostas_trata_id_externo_como_unico(client):
+    primeira = {
+        "id": "mesmo-id",
+        "pergunta": "Primeira pergunta",
+        "plataforma": "ChatGPT",
+        "modelo": "gpt-5",
+        "resposta_texto": "A Acme foi citada.",
+        "data_hora": "2026-09-22T10:00:00",
+        "sentimento": None,
+    }
+    segunda = {
+        **primeira,
+        "pergunta": "Conteúdo alterado",
+        "resposta_texto": "A Zenith foi citada.",
+    }
+
+    assert client.post("/respostas", json=primeira).status_code == 201
+    assert client.post("/respostas", json=segunda).status_code == 422
 
 
 def test_criar_respostas_detecta_mencoes(client):

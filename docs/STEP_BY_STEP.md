@@ -238,7 +238,7 @@ O objetivo é documentar não apenas o que foi implementado, mas também **por q
 - Teste da comunicação entre a aplicação e o banco de dados.
 - Validação da persistência dos dados entre execuções locais e em container.
 
-### 16. Implementação de logs nos serviços
+### 16 — Implementação de logs nos serviços
 
 - Adição de logging nos serviços responsáveis pelo processamento da aplicação.
 - Configuração de logs no serviço de analytics.
@@ -253,16 +253,3 @@ O objetivo é documentar não apenas o que foi implementado, mas também **por q
 - Utilização de diferentes níveis de log (`INFO` e `DEBUG`) de acordo com a relevância da informação.
 - Evitada a exposição do conteúdo completo das respostas nos arquivos de log.
 - Padronização dos logs para facilitar o acompanhamento e diagnóstico da aplicação.
-
-### 17. Finalizaçao de detalhes do projeto
-- Atualização da documentação da estrutura do projeto conforme a organização atual dos diretórios.
-- Revisão da documentação dos endpoints da API.
-- Atualização da documentação dos schemas Pydantic.
-- Inclusão dos schemas PlatformShare, ShareOfVoiceResponse e TopCitacaoResponse.
-- Atualização das descrições dos campos, tipos e regras de validação dos schemas.
-- Documentação da normalização do campo data_hora e dos formatos aceitos.
-- Atualização da documentação dos fluxos de entrada e saída de dados da API.
-- Revisão dos exemplos de requisições e respostas dos endpoints.
-- Remoção de informações desatualizadas e redução de repetições entre as documentações.
-- Padronização da linguagem e da estrutura dos arquivos Markdown.
-- Atualização da documentação para refletir as funcionalidades atuais de analytics, ingestão, menções e respostas.

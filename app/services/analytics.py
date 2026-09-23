@@ -130,7 +130,7 @@ def calcular_score_citacao(resposta: Resposta) -> float:
 
     ocorrencias_totais = sum(mencao.ocorrencias for mencao in resposta.mencoes)
 
-    score = (marcas_distintas * 3) + ocorrencias_totais
+    score = (marcas_distintas * 2) + ocorrencias_totais
 
     logger.debug(
         "Score calculado para resposta '%s': %.2f",

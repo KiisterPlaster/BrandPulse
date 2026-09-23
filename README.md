@@ -1,229 +1,631 @@
-# BrandPulse
+# Brand Mention Analytics
 
-Serviço HTTP para análise de menções de marcas em respostas geradas por ferramentas de IA, como ChatGPT, Gemini e Perplexity.
+Serviço de análise de menções de marcas em respostas geradas por ferramentas de Inteligência Artificial.
 
-O projeto foi construído como um serviço modular, com validação, detecção determinística de menções, persistência em SQLite e endpoints para análise.
+O sistema recebe um conjunto de respostas coletadas de plataformas de IA generativa, como ChatGPT, Gemini e Perplexity, identifica menções às marcas monitoradas e disponibiliza métricas sobre essa presença por meio de uma API HTTP.
 
-## Objetivo
+O projeto foi desenvolvido com foco em **separação de responsabilidades, testabilidade, persistência, tratamento de dados imperfeitos e facilidade de evolução**.
 
-A partir de respostas coletadas por scraping, o BrandPulse:
+---
 
-- valida e normaliza os dados recebidos;
-- identifica as marcas monitoradas (`Acme`, `Zenith` e `Nimbus`);
-- registra as menções e suas ocorrências;
-- persiste respostas e menções em SQLite;
-- calcula Share of Voice geral e por plataforma;
-- ranqueia respostas por score de citação;
-- disponibiliza tudo por uma API FastAPI.
+# 1. Objetivo
 
-A lista de marcas é atualmente fixa, conforme o escopo do desafio.
+Ferramentas de Inteligência Artificial generativa podem mencionar diferentes empresas e marcas ao responder perguntas de usuários.
 
-## Principais decisões
+O objetivo deste projeto é transformar um conjunto de respostas coletadas automaticamente em dados estruturados que permitam responder perguntas como:
 
-### FastAPI
+- Com que frequência uma determinada marca aparece nas respostas?
+- Qual é o Share of Voice de uma marca?
+- Como a presença da marca varia entre diferentes plataformas?
+- Quais respostas mencionam mais marcas?
+- Quais respostas apresentam maior concentração de menções?
 
-Escolhido pela validação integrada com Pydantic, tipagem, geração automática de documentação OpenAPI e facilidade de testes com `TestClient`.
-
-### SQLite + SQLAlchemy
-
-SQLite atende ao escopo do desafio e mantém a execução simples, sem exigir um serviço externo de banco. O acesso foi isolado em repositories e models SQLAlchemy, facilitando uma futura migração para PostgreSQL ou outro banco.
-
-### Detecção determinística
-
-As menções são identificadas por expressões regulares, com busca case-insensitive e tolerância a caracteres não alfanuméricos entre as letras da marca. Para o conjunto pequeno e conhecido de marcas, essa abordagem é previsível, barata e facilmente testável.
-
-Exemplos reconhecidos:
+As marcas monitoradas inicialmente são:
 
 ```text
 Acme
-ACME
-A.C.M.E.
-A-C-M-E
-A C M E
+Zenith
+Nimbus
 ```
 
-### Score de citação
+O sistema foi projetado de forma que novas marcas possam ser adicionadas posteriormente sem alteração significativa da lógica da aplicação.
 
-Para o ranking de `/top-citacoes`, o score considera diversidade e frequência:
+---
+
+# 2. Funcionamento geral
+
+O processamento é dividido em algumas etapas principais:
 
 ```text
-score = (2 × marcas_distintas) + ocorrencias_totais
+                    respostas.json
+                         │
+                         ▼
+                ┌──────────────────┐
+                │     Ingestão     │
+                │                  │
+                │ Validação        │
+                │ Normalização     │
+                │ Deduplicação     │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │ Detecção de      │
+                │ menções          │
+                │                  │
+                │ Acme             │
+                │ Zenith           │
+                │ Nimbus           │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │    Persistência  │
+                │                  │
+                │    SQLite        │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │     Analytics    │
+                │                  │
+                │ Share of Voice   │
+                │ Top citações     │
+                └────────┬─────────┘
+                         │
+                         ▼
+                ┌──────────────────┐
+                │     FastAPI      │
+                │                  │
+                │ HTTP / REST API  │
+                └──────────────────┘
 ```
 
-Assim, uma resposta que cita várias marcas recebe peso pela diversidade, enquanto repetições também contribuem para o resultado. O score é uma heurística do projeto, não uma avaliação semântica da qualidade da citação.
+A API não realiza diretamente a detecção das marcas ou os cálculos analíticos. Essas responsabilidades ficam separadas em serviços próprios.
 
-### Tratamento de dados imperfeitos
+Essa separação permite testar e alterar cada parte do sistema de forma independente.
 
-Registros inválidos são descartados durante a ingestão para não impedir o processamento dos demais registros. No `POST /respostas`, cada item também é validado individualmente.
+---
 
-A API ainda normaliza nomes de plataformas e datas aceitas pelo schema e evita inserir respostas já existentes segundo o identificador utilizado pela aplicação.
+# 3. Entendendo os conceitos
 
-## Arquitetura
+## Share of Voice (SOV)
+
+Share of Voice (SOV) é uma métrica utilizada para representar a participação de uma marca dentro de um determinado conjunto de menções ou conteúdo analisado.
+
+Neste projeto, o conceito é adaptado para respostas de Inteligência Artificial.
+
+O projeto **não mede participação de mercado**. A métrica responde à seguinte pergunta:
+
+> **Em qual percentual das respostas de IA uma determinada marca é mencionada?**
+
+### Importante
+
+Uma resposta é diferente de uma ocorrência.
+
+Por exemplo:
 
 ```text
-HTTP
- │
- ▼
-Routes
- │
- ├── Schemas (validação)
- │
- ├── Services (regras de negócio)
- │
- └── Repositories (persistência)
-          │
-          ▼
-       SQLAlchemy
-          │
-          ▼
-        SQLite
+"Acme é uma ótima ferramenta. A Acme também possui..."
 ```
 
-Estrutura principal:
+Nesse caso:
+
+- a Acme aparece em **1 resposta**;
+- a Acme possui **2 ocorrências** dentro dessa resposta.
+
+A fórmula utilizada será:
 
 ```text
-BrandPulse/
-├── app/
-│   ├── api/routes/        # endpoints HTTP
-│   ├── core/              # logging e rate limiting
-│   ├── database/          # conexão e inicialização do banco
-│   ├── models/            # entidades SQLAlchemy
-│   ├── repositories/      # acesso aos dados
-│   ├── schemas/           # contratos Pydantic
-│   └── services/          # regras de negócio
-├── data/                  # SQLite e dados de exemplo
-├── docs/                  # documentação técnica
-├── tests/                 # testes automatizados e fixtures
-├── Dockerfile
-├── docker-compose.yml
-├── pyproject.toml
-└── uv.lock
+Share of Voice =
+(quantidade de respostas que mencionam a marca / quantidade total de respostas) × 100
 ```
 
-## API
+---
 
-### `GET /health`
+## Citação forte
 
-Health check simples da aplicação.
+Para o endpoint `/top-citacoes`, será utilizado um score para identificar respostas com maior concentração de menções às marcas monitoradas.
 
-```http
-GET /health
+Neste projeto, uma **citação forte** não representa uma avaliação semântica da importância da marca. O termo representa uma resposta que possui maior concentração de menções, considerando:
+
+- quantidade de marcas distintas;
+- frequência total de ocorrências.
+
+O score utilizado será:
+
+```text
+score = (2 × marcas_distintas) + frequencia
 ```
 
-Resposta:
+### Diversidade de marcas
 
-```json
-{"status": "ok"}
+A quantidade de marcas distintas aumenta o score.
+
+Por exemplo:
+
+```text
+"Acme + Zenith + Nimbus"
 ```
 
-### `GET /share-of-voice`
+possui uma diversidade maior do que:
 
-Calcula a proporção de respostas que mencionam uma marca, incluindo o detalhamento por plataforma.
-
-```http
-GET /share-of-voice?marca=Acme
+```text
+"Acme"
 ```
 
-### `GET /top-citacoes`
+Portanto, a primeira resposta terá um score maior.
 
-Retorna as respostas com maior score de citação.
+Foi atribuído peso `2` à diversidade para equilibrar a presença de múltiplas marcas e a frequência total de ocorrências.
+
+### Frequência
+
+A frequência representa quantas vezes as marcas monitoradas aparecem na resposta.
+
+Por exemplo:
+
+```text
+"Acme, Acme, Acme"
+```
+
+possui 3 ocorrências, enquanto:
+
+```text
+"Acme"
+```
+
+possui apenas 1 ocorrência.
+
+### Exemplo
+
+Para uma resposta contendo:
+
+```text
+"Acme, Zenith e Nimbus são ferramentas conhecidas. Acme possui grande presença no mercado."
+```
+
+temos:
+
+```text
+marcas_distintas = 3
+frequencia = 4
+
+score = (2 × 3) + 4
+score = 10
+```
+
+O score será utilizado para ordenar as respostas no endpoint:
 
 ```http
 GET /top-citacoes?n=5
 ```
 
-`n` possui valor padrão `5` e deve ser maior ou igual a `1`.
+---
 
-### `POST /respostas`
+# 4. Tratamento de dados
 
-Recebe uma lista de respostas, valida cada item, detecta as marcas mencionadas, normaliza a plataforma, verifica duplicidade e persiste os registros válidos.
+O arquivo de entrada representa dados provenientes de scraping automático e, portanto, não é considerado completamente confiável.
+
+O sistema deve ser tolerante a inconsistências sem comprometer a integridade dos dados.
+
+Entre os problemas esperados estão:
+
+- plataformas com diferentes capitalizações;
+- formatos diferentes de data;
+- campos opcionais;
+- respostas vazias;
+- registros duplicados;
+- modelos ausentes;
+- diferentes formas de escrever uma mesma marca.
+
+Por exemplo, o conjunto de dados pode conter:
+
+```text
+ChatGPT
+chatgpt
+Chat-GPT
+```
+
+que representam a mesma plataforma.
+
+Da mesma forma, uma marca pode aparecer como:
+
+```text
+Acme
+ACME
+A.C.M.E.
+```
+
+Essas variações serão tratadas durante a normalização.
+
+---
+
+# 5. Detecção de menções
+
+A detecção será inicialmente baseada em processamento determinístico de texto.
+
+O fluxo será:
+
+```text
+Texto original
+      │
+      ▼
+Normalização
+      │
+      ├── case-insensitive
+      ├── normalização Unicode
+      ├── remoção de pontuação relevante
+      └── normalização de espaços
+      │
+      ▼
+Aplicação de aliases
+      │
+      ▼
+Busca das marcas
+      │
+      ▼
+Menções identificadas
+```
+
+A estratégia foi escolhida em vez de utilizar um modelo de Inteligência Artificial porque o problema inicial é bem definido e possui um conjunto pequeno e conhecido de marcas.
+
+Uma solução determinística possui algumas vantagens:
+
+- comportamento previsível;
+- baixo custo computacional;
+- fácil reprodução;
+- facilidade para escrever testes;
+- facilidade para explicar por que uma menção foi detectada.
+
+Por exemplo:
+
+```text
+"A.C.M.E. é uma empresa conhecida"
+```
+
+poderá ser normalizado antes da busca para permitir que seja reconhecido como uma menção à marca `Acme`.
+
+---
+
+# 6. Persistência das menções
+
+Além de armazenar a resposta original, o sistema armazenará as menções identificadas.
+
+Conceitualmente:
+
+```text
+Resposta
+   │
+   ├── Acme
+   │     └── 2 ocorrências
+   │
+   └── Zenith
+         └── 1 ocorrência
+```
+
+Isso evita a necessidade de executar novamente a detecção das marcas sempre que uma métrica for solicitada.
+
+Também permite futuras análises sobre a quantidade de ocorrências de cada marca.
+
+O texto original da resposta será preservado para possibilitar a auditoria do resultado da detecção.
+
+---
+
+# 7. Deduplicação
+
+Os registros possuem um identificador próprio (`id`).
+
+Esse identificador será tratado como único.
+
+A ingestão será idempotente: caso o mesmo registro seja processado novamente, ele não deverá ser duplicado no banco.
+
+Isso é importante porque arquivos provenientes de scraping podem conter registros repetidos ou podem ser processados mais de uma vez.
+
+A decisão também permite executar novamente o processo de ingestão sem alterar incorretamente os resultados.
+
+---
+
+# 8. Share of Voice
+
+O endpoint:
+
+```http
+GET /share-of-voice?marca=Acme
+```
+
+retornará o percentual de respostas que mencionam a marca.
+
+A fórmula utilizada será:
+
+```text
+Share of Voice =
+(respostas que mencionam a marca / total de respostas) × 100
+```
+
+O resultado também será dividido por plataforma.
+
+Exemplo conceitual:
+
+```json
+{
+  "marca": "Acme",
+  "total_respostas": 100,
+  "respostas_com_mencao": 35,
+  "share_of_voice": 35.0,
+  "por_plataforma": {
+    "chatgpt": {
+      "total_respostas": 40,
+      "respostas_com_mencao": 20,
+      "share_of_voice": 50.0
+    },
+    "gemini": {
+      "total_respostas": 35,
+      "respostas_com_mencao": 10,
+      "share_of_voice": 28.57
+    }
+  }
+}
+```
+
+A métrica representa a presença da marca no conjunto de respostas analisado, e não a participação em um mercado real.
+
+---
+
+# 9. API
+
+A primeira versão da API terá os seguintes endpoints:
+
+## `GET /share-of-voice`
+
+Consulta a presença de uma marca.
+
+```http
+GET /share-of-voice?marca=Acme
+```
+
+O resultado apresentará o Share of Voice geral e a distribuição da métrica por plataforma.
+
+---
+
+## `GET /top-citacoes`
+
+Retorna as respostas com maior Citation Strength Score.
+
+```http
+GET /top-citacoes?n=5
+```
+
+O parâmetro `n` define a quantidade de respostas retornadas.
+
+---
+
+## `POST /respostas`
+
+Adiciona uma nova resposta ao conjunto de dados.
 
 ```http
 POST /respostas
-Content-Type: application/json
 ```
 
 Exemplo:
 
 ```json
-[
-  {
-    "id": "r001",
-    "pergunta": "Qual a melhor ferramenta?",
-    "plataforma": "ChatGPT",
-    "modelo": "gpt-5",
-    "resposta_texto": "A Acme é uma boa opção.",
-    "data_hora": "2026-09-22T10:00:00",
-    "sentimento": "positivo"
-  }
-]
+{
+  "id": "r011",
+  "pergunta": "Qual ferramenta você recomenda?",
+  "plataforma": "ChatGPT",
+  "modelo": "gpt-5.1",
+  "resposta_texto": "A Acme é uma opção bastante conhecida.",
+  "data_hora": "2026-01-23T10:00:00",
+  "sentimento": "positivo"
+}
 ```
 
-A documentação interativa pode ser acessada em `/docs` quando a API estiver em execução.
+A resposta será validada, processada, analisada e persistida.
 
-## Executando localmente
+---
 
-Requisitos: Python 3.11+ e `uv`.
+# 10. Fluxo de uma nova resposta
+
+Quando uma nova resposta é enviada para a API:
+
+```text
+POST /respostas
+       │
+       ▼
+Validação Pydantic
+       │
+       ▼
+Normalização
+       │
+       ▼
+Detecção de menções
+       │
+       ▼
+Cálculo dos dados derivados
+       │
+       ▼
+Persistência
+       │
+       ▼
+Resposta HTTP
+```
+
+A API não precisa executar manualmente nenhuma etapa adicional.
+
+---
+
+# 11. Decisões arquiteturais
+
+As principais decisões deste projeto foram tomadas buscando equilíbrio entre simplicidade e possibilidade de evolução.
+
+## Por que não um único arquivo?
+
+Porque a aplicação possui responsabilidades diferentes:
+
+```text
+HTTP
+Business Logic
+Persistence
+Ingestion
+Validation
+Analytics
+```
+
+Mantê-las separadas facilita testes, manutenção e evolução.
+
+A estrutura final de diretórios e a responsabilidade de cada módulo serão documentadas após a implementação.
+
+---
+
+## Por que não microsserviços?
+
+O problema possui escopo pequeno e não apresenta necessidade de distribuição independente dos componentes.
+
+Um monólito modular oferece menor complexidade operacional, mantendo uma boa separação de responsabilidades.
+
+---
+
+## Por que não utilizar um LLM para detectar as marcas?
+
+As marcas monitoradas são conhecidas e a tarefa inicial consiste em identificar ocorrências textuais.
+
+Uma solução determinística é suficiente e apresenta comportamento mais previsível.
+
+Além disso, ela possui menor custo computacional, facilita a reprodução dos resultados e permite testar de forma mais objetiva a detecção das menções.
+
+---
+
+## Por que SQLite?
+
+O SQLite atende ao volume esperado para o desafio e não exige infraestrutura externa.
+
+Além disso, permite manter a execução do projeto simples durante o desenvolvimento.
+
+Em um ambiente de produção com maior volume de dados ou múltiplas instâncias da aplicação, a persistência poderia ser migrada para PostgreSQL.
+
+---
+
+# 12. Possíveis evoluções
+
+Com mais tempo e um volume de produção maior, algumas evoluções seriam consideradas.
+
+## PostgreSQL
+
+Substituir o SQLite por PostgreSQL para cenários com maior concorrência e volume de dados.
+
+---
+
+## Alembic
+
+Adicionar migrations para controlar a evolução do schema do banco de dados.
+
+---
+
+## Processamento assíncrono
+
+Para grandes volumes de respostas, a ingestão poderia ser desacoplada da API através de uma fila:
+
+```text
+API
+ │
+ ▼
+Queue
+ │
+ ▼
+Workers
+ │
+ ├── Normalização
+ ├── Detecção
+ └── Persistência
+```
+
+Isso permitiria processar grandes quantidades de respostas sem bloquear as requisições da API.
+
+---
+
+## Detecção semântica
+
+Uma evolução futura seria utilizar modelos de linguagem ou modelos especializados para identificar menções mais complexas.
+
+Por exemplo, uma resposta poderia mencionar uma empresa indiretamente, sem utilizar exatamente seu nome.
+
+Essa abordagem, porém, aumentaria a complexidade, o custo computacional e a necessidade de avaliação da qualidade dos resultados.
+
+Por isso, não faz parte da primeira versão do projeto.
+
+---
+
+# 13. Testes
+
+Os testes serão concentrados principalmente nas partes que possuem regras de negócio ou maior possibilidade de apresentar comportamentos incorretos, como:
+
+- normalização dos dados;
+- detecção de menções;
+- reconhecimento de variações das marcas;
+- cálculo do Share of Voice;
+- cálculo do Citation Strength Score;
+- validação das respostas recebidas pela API;
+- deduplicação e idempotência da ingestão.
+
+A cobertura e a estrutura definitiva dos testes serão documentadas após a implementação.
+
+---
+
+# 14. Qualidade de código
+
+O projeto utiliza **Ruff** para linting e formatação do código Python.
+
+Para verificar problemas:
 
 ```bash
-uv sync
-uv run uvicorn app.main:app --reload
+ruff check .
 ```
 
-A API ficará disponível em `http://localhost:8000`.
-
-## Executando com Docker
+Para formatar o código:
 
 ```bash
-docker compose up --build
+ruff format .
 ```
 
-O Compose monta `./data` em `/app/data` e `./logs` em `/app/logs`. Dessa forma, o SQLite utilizado pelo container permanece no diretório do projeto e pode ser compartilhado com a execução local.
-
-Para verificar o container:
+Para verificar se o código já está formatado, sem modificar os arquivos:
 
 ```bash
-docker compose ps
+ruff format --check .
 ```
 
-O Compose possui health check em `/health`.
-
-## Testes e qualidade
-
-Os testes utilizam `pytest` e o `TestClient` do FastAPI. Os testes de API utilizam banco isolado para não depender dos dados persistidos no ambiente de desenvolvimento.
+Os testes serão executados com:
 
 ```bash
-uv run pytest
-uv run ruff check .
-uv run ruff format --check .
+pytest
 ```
 
-Também existe `tests/teste_api.http` para testes manuais dos endpoints.
+---
 
-## Logs
+# 15. Próximos passos
 
-O logging é configurado em `app/core/logging.py` e enviado para o console e para `logs/app.log`.
+A implementação será realizada de forma incremental:
 
-São utilizados principalmente `INFO` para eventos relevantes da aplicação e `DEBUG` para detalhes de diagnóstico. O conteúdo completo das respostas não é registrado nos logs.
+```text
+1. Configuração do projeto
+        ↓
+2. Modelagem dos dados
+        ↓
+3. Persistência
+        ↓
+4. Ingestão do JSON
+        ↓
+5. Normalização
+        ↓
+6. Detecção de menções
+        ↓
+7. Cálculo das métricas
+        ↓
+8. API
+        ↓
+9. Testes
+        ↓
+10. Documentação final
+```
 
-## Documentação
-
-- [`docs/documentacoes/API_DOCS.md`](docs/documentacoes/API_DOCS.md) — endpoints, parâmetros, respostas e exemplos.
-- [`docs/documentacoes/SCHEMAS_DOCS.md`](docs/documentacoes/SCHEMAS_DOCS.md) — contratos Pydantic.
-- [`docs/documentacoes/ESTRUTURA_DOCS.md`](docs/documentacoes/ESTRUTURA_DOCS.md) — organização e responsabilidades das camadas.
-- [`docs/STEP_BY_STEP.md`](docs/STEP_BY_STEP.md) — histórico do desenvolvimento.
-- [`SECURITY.md`](SECURITY.md) — considerações de segurança.
-
-## O que eu faria com mais tempo
-
-- Migraria o SQLite para PostgreSQL em um ambiente de produção.
-- Adicionaria migrações de banco com Alembic.
-- Transformaria a lista de marcas monitoradas em configuração persistida, com suporte a aliases.
-- Ampliaria a análise semântica de citações, separando frequência de contexto, sentimento e posição da marca na resposta.
-- Adicionaria métricas e observabilidade mais completas, como latência por endpoint e métricas de negócio.
-- Configuraria CI/CD para executar lint, testes e cobertura a cada alteração.
-- Adicionaria autenticação e configuração de CORS/rate limiting adequada ao ambiente de produção.
-
-## Licença
-
-Consulte [`LICENSE`](LICENSE).
+A documentação da estrutura de diretórios, instalação, execução e exemplos reais da API será adicionada após a implementação para refletir a arquitetura efetivamente utilizada.
