@@ -192,3 +192,33 @@ O objetivo é documentar não apenas o que foi implementado, mas também **por q
 - Padronização da documentação utilizando arquivos Markdown.
 - Inclusão de descrições sobre responsabilidades, entradas, saídas e funcionamento dos componentes.
 - Preparação da documentação para facilitar a manutenção e compreensão do projeto.
+
+### 14. Analytics, integração da API e testes automatizados
+
+- Implementação do cálculo de Share of Voice (SOV) de uma marca.
+- Implementação do cálculo de Share of Voice por plataforma.
+- Implementação do tratamento case insensitive para consultas de marcas.
+- Implementação do cálculo de score de citação das respostas.
+- Implementação do ranking de Top Citações.
+- Suporte a múltiplas marcas e múltiplas ocorrências em uma mesma resposta.
+- Tratamento de respostas sem menções e listas vazias.
+- Implementação do parâmetro `n` para limitar os resultados do ranking de citações.
+- Criação do endpoint `GET /share-of-voice`.
+- Criação do endpoint `GET /top-citacoes`.
+- Implementação da busca de respostas por marca no `RespostaRepository`.
+- Utilização de `distinct()` para evitar respostas duplicadas nas consultas por marca.
+- Ajuste dos models `Resposta` e `Mencao` e de seus relacionamentos.
+- Ajuste dos schemas Pydantic para respostas, menções e analytics.
+- Diferenciação entre o ID interno do banco (`id`) e o identificador externo (`resposta_id`).
+- Ajuste da rota de criação de respostas para validação individual dos dados recebidos.
+- Implementação da detecção automática de menções de marcas nas respostas.
+- Normalização das plataformas antes da persistência.
+- Verificação de duplicidade antes da criação das respostas.
+- Ampliação dos testes automatizados dos services, repositories, models e routes.
+- Criação de testes para Share of Voice, Top Citações e score de citações.
+- Criação de testes para consultas de marcas com diferentes capitalizações.
+- Criação de banco de dados isolado para execução dos testes.
+- Criação de fixtures para os testes automatizados.
+- Criação de arquivo `.http` para testes manuais dos endpoints da API.
+- Atualização das dependências de desenvolvimento no `pyproject.toml`.
+- Atualização do `uv.lock`.
