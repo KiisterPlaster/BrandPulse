@@ -1,154 +1,135 @@
 # Documentação dos Schemas
 
-Este documento descreve os schemas Pydantic utilizados pelo BrandPulse para validação dos dados de entrada e saída da API.
-
-## `app/schemas/analytics.py`
-
-Define os schemas utilizados pelas rotas de análise, principalmente **Share of Voice** e **Top Citações**.
-
-### `PlatformShare`
-
-Representa os dados de participação de uma marca em uma plataforma específica.
-
-| Campo | Tipo | Validação | Descrição |
-|---|---|---|---|
-| `plataforma` | `str` | — | Nome da plataforma analisada. |
-| `respostas_com_mencao` | `int` | `>= 0` | Quantidade de respostas que mencionaram a marca. |
-| `total_respostas` | `int` | `>= 0` | Quantidade total de respostas analisadas. |
-| `percentual` | `float` | `0 <= valor <= 100` | Percentual de respostas com menção à marca. |
-
-### `ShareOfVoiceResponse`
-
-Representa o resultado completo da análise de **Share of Voice**.
-
-| Campo | Tipo | Validação | Descrição |
-|---|---|---|---|
-| `marca` | `str` | — | Marca analisada. |
-| `respostas_com_mencao` | `int` | `>= 0` | Quantidade de respostas que mencionaram a marca. |
-| `total_respostas` | `int` | `>= 0` | Quantidade total de respostas analisadas. |
-| `percentual` | `float` | `0 <= valor <= 100` | Percentual geral de Share of Voice. |
-| `por_plataforma` | `list[PlatformShare]` | — | Share of Voice detalhado por plataforma. |
-
-### `TopCitacaoResponse`
-
-Representa um resultado da análise de **Top Citações**.
-
-| Campo | Tipo | Validação | Descrição |
-|---|---|---|---|
-| `resposta_id` | `str` | — | Identificador da resposta analisada. |
-| `plataforma` | `str` | — | Plataforma da resposta. |
-| `modelo` | `str \| None` | — | Modelo de IA utilizado, quando disponível. |
-| `resposta_texto` | `str` | — | Texto da resposta analisada. |
-| `marcas` | `list[str]` | — | Marcas identificadas na resposta. |
-| `score` | `float` | `>= 0` | Pontuação utilizada na classificação da citação. |
-
----
+Os schemas Pydantic definem os contratos de entrada e saída da API.
 
 ## `app/schemas/respostas.py`
 
-Define os schemas utilizados no fluxo de criação e retorno das respostas.
-
 ### `RespostaCreate`
 
-Representa os dados recebidos pela API para criação de uma resposta.
+Entrada utilizada para criação de uma resposta.
 
-| Campo | Tipo | Validação | Descrição |
-|---|---|---|---|
-| `id` | `str` | mínimo de 1 caractere | Identificador da resposta. |
-| `pergunta` | `str` | mínimo de 1 caractere | Pergunta enviada ao modelo de IA. |
-| `plataforma` | `str` | mínimo de 1 caractere | Plataforma de IA utilizada. |
-| `modelo` | `str \| None` | opcional | Modelo utilizado para gerar a resposta. |
-| `resposta_texto` | `str` | mínimo de 1 caractere | Texto retornado pela plataforma. |
-| `data_hora` | `datetime` | — | Data e horário associados à resposta. |
-| `sentimento` | `str \| None` | opcional | Sentimento associado à resposta. |
+| Campo | Tipo | Regra |
+|---|---|---|
+| `id` | `str` | mínimo de 1 caractere |
+| `pergunta` | `str` | mínimo de 1 caractere |
+| `plataforma` | `str` | mínimo de 1 caractere |
+| `modelo` | `str \| None` | opcional |
+| `resposta_texto` | `str` | mínimo de 1 caractere |
+| `data_hora` | `datetime` | normalizado antes da validação |
+| `sentimento` | `str \| None` | opcional |
 
-### Normalização de `data_hora`
-
-O campo `data_hora` possui um `field_validator` executado antes da validação padrão do Pydantic.
-
-São aceitos os seguintes formatos:
+O `field_validator` de `data_hora` aceita os formatos:
 
 ```text
-2026-01-20T10:00:00
-2026-01-20 10:00:00
-2026-01-20
-20/01/2026
-2026/01/20
+YYYY-MM-DDTHH:MM:SS
+YYYY-MM-DD HH:MM:SS
+YYYY-MM-DD
+DD/MM/YYYY
+YYYY/MM/DD
 ```
-
-Quando o valor corresponde a um desses formatos, ele é convertido para `datetime`.
-
-Valores que não correspondem aos formatos definidos são encaminhados ao Pydantic para validação.
 
 ### `RespostasCreate`
 
-Representa uma coleção de respostas.
+Agrupa uma lista de `RespostaCreate`:
 
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `respostas` | `list[RespostaCreate]` | Lista de respostas a serem processadas. |
+```text
+respostas: list[RespostaCreate]
+```
 
 ### `MencaoResponse`
 
-Representa uma menção de marca associada a uma resposta.
+Representa uma menção retornada pela API. Utiliza `from_attributes=True` para permitir conversão a partir de objetos ORM.
 
-O schema utiliza `ConfigDict(from_attributes=True)`, permitindo sua construção a partir de objetos com atributos, como modelos SQLAlchemy.
-
-| Campo | Tipo | Descrição |
-|---|---|---|
-| `id` | `int` | Identificador da menção. |
-| `resposta_id` | `str` | Identificador da resposta associada. |
-| `marca` | `str` | Nome da marca mencionada. |
-| `ocorrencias` | `int` | Quantidade de ocorrências da marca. |
+| Campo | Tipo |
+|---|---|
+| `id` | `int` |
+| `resposta_id` | `int` |
+| `marca` | `str` |
+| `ocorrencias` | `int` |
 
 ### `RespostaResponse`
 
-Representa uma resposta retornada pela API.
+Representa uma resposta persistida retornada pela API.
 
-Também utiliza `ConfigDict(from_attributes=True)` para permitir a conversão dos objetos de persistência para o schema de resposta.
+| Campo | Tipo |
+|---|---|
+| `id` | `int` |
+| `resposta_id` | `str` |
+| `pergunta` | `str` |
+| `plataforma` | `str` |
+| `modelo` | `str \| None` |
+| `resposta_texto` | `str` |
+| `data_hora` | `datetime` |
+| `sentimento` | `str \| None` |
+| `mencoes` | `list[MencaoResponse]` |
 
-| Campo | Tipo | Descrição |
+`id` representa o identificador interno do banco; `resposta_id` representa o identificador recebido no dado de origem.
+
+### `StatusResponse`
+
+Estrutura disponível para mensagens de status:
+
+| Campo | Tipo |
+|---|---|
+| `message` | `str` |
+| `respostas_invalidas` | `list[dict]` |
+
+---
+
+## `app/schemas/analytics.py`
+
+### `PlatformShare`
+
+Resultado do Share of Voice em uma plataforma.
+
+| Campo | Tipo | Regra |
 |---|---|---|
-| `id` | `str` | Identificador da resposta. |
-| `pergunta` | `str` | Pergunta associada à resposta. |
-| `plataforma` | `str` | Plataforma de IA utilizada. |
-| `modelo` | `str \| None` | Modelo utilizado, quando disponível. |
-| `resposta_texto` | `str` | Texto da resposta. |
-| `data_hora` | `datetime` | Data e horário da resposta. |
-| `sentimento` | `str \| None` | Sentimento associado à resposta. |
-| `mencoes` | `list[MencaoResponse]` | Menções de marcas identificadas na resposta. |
+| `plataforma` | `str` | — |
+| `respostas_com_mencao` | `int` | `>= 0` |
+| `total_respostas` | `int` | `>= 0` |
+| `percentual` | `float` | `0 <= valor <= 100` |
 
-## Fluxo dos Schemas
+### `ShareOfVoiceResponse`
 
-### Criação de respostas
+Resultado completo do Share of Voice.
+
+| Campo | Tipo | Regra |
+|---|---|---|
+| `marca` | `str` | — |
+| `respostas_com_mencao` | `int` | `>= 0` |
+| `total_respostas` | `int` | `>= 0` |
+| `percentual` | `float` | `0 <= valor <= 100` |
+| `por_plataforma` | `list[PlatformShare]` | — |
+
+### `TopCitacaoResponse`
+
+Item retornado pelo ranking de citações.
+
+| Campo | Tipo | Regra |
+|---|---|---|
+| `resposta_id` | `str` | — |
+| `plataforma` | `str` | — |
+| `modelo` | `str \| None` | opcional |
+| `resposta_texto` | `str` | — |
+| `marcas` | `list[str]` | — |
+| `score` | `float` | `>= 0` |
+
+## Fluxo
 
 ```text
-Requisição HTTP
-      │
-      ▼
+JSON/HTTP
+   │
+   ▼
 RespostaCreate
-      │
-      ├── Validação dos campos
-      └── Normalização de data_hora
-      │
-      ▼
-Processamento da aplicação
-      │
-      ▼
+   │
+   ▼
+Services
+   │
+   ▼
+SQLAlchemy
+   │
+   ▼
 RespostaResponse
-      │
-      └── MencaoResponse
 ```
 
-### Analytics
-
-```text
-Dados processados
-      │
-      ├── ShareOfVoiceResponse
-      │       └── PlatformShare
-      │
-      └── TopCitacaoResponse
-```
-
-Os schemas funcionam, portanto, como a camada responsável por definir e validar o formato dos dados que entram e saem da API.
+Os schemas mantêm a validação e o contrato HTTP separados das regras de negócio e da persistência.

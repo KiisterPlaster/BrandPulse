@@ -65,8 +65,3 @@ class RespostaResponse(BaseModel):
     data_hora: datetime
     sentimento: str | None
     mencoes: list[MencaoResponse]
-
-
-class StatusResponse(BaseModel):
-    message: str
-    respostas_invalidas: list[dict]
