@@ -80,6 +80,11 @@ async def rota_nao_encontrada(
     )
 
 
+@app.get("/health")
+def health_check():
+    return {"status": "ok"}
+
+
 app.include_router(analytics_router)
 app.include_router(respostas_router)
 

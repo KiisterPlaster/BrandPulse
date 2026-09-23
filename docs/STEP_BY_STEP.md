@@ -222,3 +222,18 @@ O objetivo é documentar não apenas o que foi implementado, mas também **por q
 - Criação de arquivo `.http` para testes manuais dos endpoints da API.
 - Atualização das dependências de desenvolvimento no `pyproject.toml`.
 - Atualização do `uv.lock`.
+
+### 15. Dockerização
+- Criação do `Dockerfile` para definir o ambiente de execução da aplicação.
+- Criação do `.dockerignore` para evitar o envio de arquivos desnecessários para o contexto de build.
+- Configuração da imagem Python 3.11.
+- Configuração da execução da API utilizando Uvicorn dentro do container.
+- Criação do `docker-compose.yml` para facilitar a inicialização da aplicação.
+- Configuração do container da API com exposição da porta `8000`.
+- Configuração do acesso ao banco SQLite através do diretório `data/`.
+- Configuração para que a execução via `uv run` e via Docker Compose utilize os mesmos dados persistidos.
+- Configuração do volume `./data:/app/data` para compartilhar o banco entre o ambiente local e o container.
+- Teste da construção da imagem Docker.
+- Teste da execução da API dentro do container.
+- Teste da comunicação entre a aplicação e o banco de dados.
+- Validação da persistência dos dados entre execuções locais e em container.
