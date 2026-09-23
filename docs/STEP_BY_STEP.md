@@ -237,3 +237,19 @@ O objetivo é documentar não apenas o que foi implementado, mas também **por q
 - Teste da execução da API dentro do container.
 - Teste da comunicação entre a aplicação e o banco de dados.
 - Validação da persistência dos dados entre execuções locais e em container.
+
+### 16 — Implementação de logs nos serviços
+
+- Adição de logging nos serviços responsáveis pelo processamento da aplicação.
+- Configuração de logs no serviço de analytics.
+- Registro do início e término dos cálculos de Share of Voice.
+- Registro da quantidade de respostas analisadas e respostas com menções.
+- Registro dos resultados de Share of Voice por plataforma.
+- Registro do processamento do ranking de Top Citações.
+- Adição de logs no serviço de detecção de menções.
+- Registro das marcas detectadas e suas respectivas quantidades de ocorrências.
+- Adição de logs no serviço de normalização de plataformas.
+- Registro das plataformas após a normalização.
+- Utilização de diferentes níveis de log (`INFO` e `DEBUG`) de acordo com a relevância da informação.
+- Evitada a exposição do conteúdo completo das respostas nos arquivos de log.
+- Padronização dos logs para facilitar o acompanhamento e diagnóstico da aplicação.

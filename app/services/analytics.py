@@ -1,3 +1,5 @@
+import logging
+
 from app.models.resposta import Resposta
 from app.repositories.respostas import RespostaRepository
 from app.schemas.analytics import (
@@ -6,16 +8,33 @@ from app.schemas.analytics import (
     TopCitacaoResponse,
 )
 
+logger = logging.getLogger(__name__)
+
 
 def calcular_share_of_voice(
     repository: RespostaRepository,
     marca: str,
 ) -> ShareOfVoiceResponse:
+    logger.info(
+        "Iniciando cálculo de Share of Voice para a marca '%s'",
+        marca,
+    )
+
     respostas = repository.listar()
 
     total_respostas = len(respostas)
 
+    logger.info(
+        "Total de respostas disponíveis para Share of Voice: %d",
+        total_respostas,
+    )
+
     if total_respostas == 0:
+        logger.info(
+            "Nenhuma resposta encontrada para calcular Share of Voice da marca '%s'",
+            marca,
+        )
+
         return ShareOfVoiceResponse(
             marca=marca,
             respostas_com_mencao=0,
@@ -29,6 +48,14 @@ def calcular_share_of_voice(
     quantidade_com_mencao = len(respostas_com_marca)
 
     percentual = (quantidade_com_mencao / total_respostas) * 100
+
+    logger.info(
+        "Marca '%s' encontrada em %d de %d respostas (%.2f%%)",
+        marca,
+        quantidade_com_mencao,
+        total_respostas,
+        percentual,
+    )
 
     plataformas = {}
 
@@ -53,6 +80,16 @@ def calcular_share_of_voice(
 
         percentual_plataforma = (com_mencao / total) * 100
 
+        logger.info(
+            "Share of Voice da marca '%s' na plataforma '%s': "
+            "%d de %d respostas (%.2f%%)",
+            marca,
+            plataforma,
+            com_mencao,
+            total,
+            percentual_plataforma,
+        )
+
         por_plataforma.append(
             PlatformShare(
                 plataforma=plataforma,
@@ -62,13 +99,20 @@ def calcular_share_of_voice(
             )
         )
 
-    return ShareOfVoiceResponse(
+    resultado = ShareOfVoiceResponse(
         marca=marca,
         respostas_com_mencao=quantidade_com_mencao,
         total_respostas=total_respostas,
         percentual=percentual,
         por_plataforma=por_plataforma,
     )
+
+    logger.info(
+        "Cálculo de Share of Voice finalizado para a marca '%s'",
+        marca,
+    )
+
+    return resultado
 
 
 def calcular_score_citacao(resposta: Resposta) -> float:
@@ -86,7 +130,15 @@ def calcular_score_citacao(resposta: Resposta) -> float:
 
     ocorrencias_totais = sum(mencao.ocorrencias for mencao in resposta.mencoes)
 
-    return (marcas_distintas * 2) + ocorrencias_totais
+    score = (marcas_distintas * 2) + ocorrencias_totais
+
+    logger.debug(
+        "Score calculado para resposta '%s': %.2f",
+        resposta.resposta_id,
+        score,
+    )
+
+    return score
 
 
 def obter_top_citacoes(
@@ -102,8 +154,19 @@ def obter_top_citacoes(
     As respostas são ordenadas pelo score em ordem decrescente
     e limitadas à quantidade solicitada pelo parâmetro n.
     """
+    logger.info(
+        "Iniciando cálculo de top citações: %d respostas recebidas, limite n=%d",
+        len(respostas),
+        n,
+    )
 
     respostas_com_mencoes = [resposta for resposta in respostas if resposta.mencoes]
+
+    logger.info(
+        "%d de %d respostas possuem menções",
+        len(respostas_com_mencoes),
+        len(respostas),
+    )
 
     respostas_ordenadas = sorted(
         respostas_com_mencoes,
@@ -111,7 +174,7 @@ def obter_top_citacoes(
         reverse=True,
     )
 
-    return [
+    resultado = [
         TopCitacaoResponse(
             resposta_id=resposta.resposta_id,
             plataforma=resposta.plataforma,
@@ -122,6 +185,13 @@ def obter_top_citacoes(
         )
         for resposta in respostas_ordenadas[:n]
     ]
+
+    logger.info(
+        "Top citações calculado com sucesso: %d resultados retornados",
+        len(resultado),
+    )
+
+    return resultado
 
 
 if __name__ == "__main__":

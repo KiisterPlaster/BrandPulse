@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, Query
 
 from app.database.connection import SessionLocal
@@ -11,6 +13,7 @@ from app.services.analytics import (
     obter_top_citacoes,
 )
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -41,10 +44,25 @@ def share_of_voice(
     ),
     repository: RespostaRepository = Depends(get_repository),
 ):
-    return calcular_share_of_voice(
+    logger.info(
+        "Iniciando cálculo de Share of Voice para a marca '%s'",
+        marca,
+    )
+
+    resultado = calcular_share_of_voice(
         repository=repository,
         marca=marca,
     )
+
+    logger.info(
+        "Share of Voice calculado para '%s': %.2f%% (%d de %d respostas)",
+        marca,
+        resultado.percentual,
+        resultado.respostas_com_mencao,
+        resultado.total_respostas,
+    )
+
+    return resultado
 
 
 @router.get(
@@ -66,9 +84,26 @@ def top_citacoes(
     ),
     repository: RespostaRepository = Depends(get_repository),
 ):
+    logger.info(
+        "Iniciando consulta de top citações com limite n=%d",
+        n,
+    )
+
     respostas = repository.listar()
 
-    return obter_top_citacoes(
+    logger.info(
+        "Encontradas %d respostas para análise de top citações",
+        len(respostas),
+    )
+
+    resultado = obter_top_citacoes(
         respostas=respostas,
         n=n,
     )
+
+    logger.info(
+        "Consulta de top citações concluída: %d resultados retornados",
+        len(resultado),
+    )
+
+    return resultado

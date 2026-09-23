@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, status
 
 from app.database.connection import SessionLocal
@@ -8,6 +10,7 @@ from app.schemas.respostas import RespostaCreate, RespostaResponse
 from app.services.mencoes import detectar_mencoes
 from app.services.plataformas import normalizar_plataforma
 
+logger = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -37,23 +40,48 @@ def criar_respostas(
     dados: list[dict],
     repository: RespostaRepository = Depends(get_repository),
 ):
+    logger.info(
+        "Iniciando processamento de %d respostas.",
+        len(dados),
+    )
+
     respostas = []
     respostas_invalidas = []
+    duplicadas = 0
 
-    for dado in dados:
+    for indice, dado in enumerate(dados, start=1):
         try:
             resposta_validada = RespostaCreate.model_validate(dado)
 
         except Exception as erro:
+            logger.warning(
+                "Resposta %d rejeitada durante a validação: %s",
+                indice,
+                str(erro),
+            )
+
             respostas_invalidas.append(
                 {
                     "dados": dado,
                     "erro": str(erro),
                 }
             )
+
             continue
 
+        logger.info(
+            "Resposta %d validada com sucesso. resposta_id=%s",
+            indice,
+            resposta_validada.id,
+        )
+
         mencoes_detectadas = detectar_mencoes(resposta_validada.resposta_texto)
+
+        logger.info(
+            "Menções detectadas para resposta_id=%s: %d marca(s).",
+            resposta_validada.id,
+            len(mencoes_detectadas),
+        )
 
         mencoes = [
             Mencao(
@@ -75,13 +103,45 @@ def criar_respostas(
         )
 
         if repository.existe_duplicata(resposta):
+            duplicadas += 1
+
+            logger.warning(
+                "Resposta duplicada ignorada. resposta_id=%s",
+                resposta_validada.id,
+            )
+
             continue
 
-        repository.criar(resposta)
+        try:
+            repository.criar(resposta)
+
+        except Exception:
+            logger.exception(
+                "Erro ao persistir resposta. resposta_id=%s",
+                resposta_validada.id,
+            )
+            raise
+
         respostas.append(resposta)
+
+        logger.info(
+            "Resposta criada com sucesso. resposta_id=%s",
+            resposta_validada.id,
+        )
+
+    logger.info(
+        "Processamento finalizado. Criadas=%d, inválidas=%d, duplicadas=%d.",
+        len(respostas),
+        len(respostas_invalidas),
+        duplicadas,
+    )
 
     if respostas:
         return respostas
+
+    logger.warning(
+        "Nenhuma resposta foi criada. Todas as entradas eram inválidas ou duplicadas."
+    )
 
     raise HTTPException(
         status_code=status.HTTP_422_UNPROCESSABLE_CONTENT,

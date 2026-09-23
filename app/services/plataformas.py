@@ -1,4 +1,7 @@
+import logging
 import re
+
+logger = logging.getLogger(__name__)
 
 PLATAFORMAS = {
     "chatgpt": "ChatGPT",
@@ -17,6 +20,17 @@ def normalizar_plataforma(plataforma: str) -> str:
     Remove diferenças de maiúsculas/minúsculas,
     espaços, hífens e outros caracteres não alfanuméricos.
     """
+    logger.debug(
+        "Iniciando normalização de plataforma",
+    )
+
     chave = re.sub(r"[\W_]+", "", plataforma.lower())
 
-    return PLATAFORMAS.get(chave, chave)
+    plataforma_normalizada = PLATAFORMAS.get(chave, chave)
+
+    logger.info(
+        "Plataforma normalizada para '%s'",
+        plataforma_normalizada,
+    )
+
+    return plataforma_normalizada

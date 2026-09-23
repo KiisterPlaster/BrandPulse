@@ -8,11 +8,13 @@ from slowapi.middleware import SlowAPIMiddleware
 
 from app.api import analytics_router, respostas_router
 from app.core.limiter import limiter
+from app.core.logging import configurar_logging
 from app.database.init_db import create_tables
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
+    configurar_logging()
     create_tables()
 
     yield
