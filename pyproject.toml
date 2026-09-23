@@ -41,6 +41,11 @@ quote-style = "double"
 indent-style = "space"
 line-ending = "auto"
 
+[tool.pytest.ini_options]
+filterwarnings = [
+    "ignore::DeprecationWarning:starlette.testclient",
+]
+
 [dependency-groups]
 dev = [
     "httpx2>=2.13.0",
