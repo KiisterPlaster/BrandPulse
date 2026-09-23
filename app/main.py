@@ -1,6 +1,6 @@
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
 from slowapi.errors import RateLimitExceeded
@@ -64,6 +64,20 @@ app.add_middleware(SlowAPIMiddleware)
 @app.exception_handler(RateLimitExceeded)
 async def rate_limit_handler(request, exc):
     return JSONResponse(status_code=429, content={"detail": "Rate limit exceeded"})
+
+
+@app.exception_handler(404)
+async def rota_nao_encontrada(
+    request: Request,
+    exc,
+):
+    return JSONResponse(
+        status_code=404,
+        content={
+            "error": "rota_nao_encontrada",
+            "message": f"A rota {request.url.path} não existe.",
+        },
+    )
 
 
 app.include_router(analytics_router)
