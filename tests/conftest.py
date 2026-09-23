@@ -4,10 +4,10 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
+from app.api.routes.analytics import get_repository as get_analytics_repository
+from app.api.routes.respostas import get_repository as get_respostas_repository
 from app.database.tables import Base
 from app.main import app
-from app.api.routes.respostas import get_repository as get_respostas_repository
-from app.api.routes.analytics import get_repository as get_analytics_repository
 from app.repositories.respostas import RespostaRepository
 
 
@@ -45,13 +45,9 @@ def client(test_engine):
         with Session(test_engine) as session:
             yield RespostaRepository(session)
 
-    app.dependency_overrides[get_respostas_repository] = (
-        override_respostas_repository
-    )
+    app.dependency_overrides[get_respostas_repository] = override_respostas_repository
 
-    app.dependency_overrides[get_analytics_repository] = (
-        override_analytics_repository
-    )
+    app.dependency_overrides[get_analytics_repository] = override_analytics_repository
 
     with TestClient(app) as test_client:
         yield test_client

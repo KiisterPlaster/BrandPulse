@@ -1,6 +1,4 @@
-from unittest.mock import patch
 
-from app.models.mencao import Mencao
 
 
 # ---------------------------------------------------------------------------
@@ -146,10 +144,7 @@ def test_criar_respostas_detecta_mencoes(client):
 
     assert len(resposta["mencoes"]) == 2
 
-    mencoes = {
-        mencao["marca"]: mencao["ocorrencias"]
-        for mencao in resposta["mencoes"]
-    }
+    mencoes = {mencao["marca"]: mencao["ocorrencias"] for mencao in resposta["mencoes"]}
 
     assert mencoes["Acme"] == 2
     assert mencoes["Zenith"] == 1
