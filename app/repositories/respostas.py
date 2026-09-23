@@ -1,4 +1,4 @@
-from sqlalchemy import select
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.models.mencao import Mencao
@@ -34,6 +34,11 @@ class RespostaRepository:
         Busca uma resposta pelo ID interno do banco.
         """
         return self.session.get(Resposta, resposta_id)
+
+    def buscar_por_resposta_id(self, resposta_id: str) -> Resposta | None:
+        statement = select(Resposta).where(Resposta.resposta_id == resposta_id)
+
+        return self.session.scalar(statement)
 
     def listar(self) -> list[Resposta]:
         """
@@ -72,7 +77,7 @@ class RespostaRepository:
         statement = (
             select(Resposta)
             .join(Resposta.mencoes)
-            .where(Mencao.marca == marca)
+            .where(func.lower(Mencao.marca) == marca.lower())
             .distinct()
         )
 
