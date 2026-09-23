@@ -1,4 +1,11 @@
+from pathlib import Path
+
+import pytest
+
+from app.services.ingestao import carregar_respostas
 from app.services.mencoes import detectar_mencoes
+
+FIXTURES_DIR = Path(__file__).parent / "fixtures"
 
 
 def test_detectar_uma_marca():
@@ -25,8 +32,8 @@ def test_detectar_multiplas_marcas():
 
 def test_detectar_multiplas_ocorrencias_da_mesma_marca():
     texto = (
-        "A Acme possui boas soluções. "
-        "A Acme também oferece suporte. "
+        "A A.C.M.E possui boas soluções. "
+        "A A C M E também oferece suporte. "
         "A Acme atua em diversos mercados."
     )
 
@@ -81,3 +88,24 @@ def test_texto_vazio():
     resultado = detectar_mencoes("")
 
     assert resultado == {}
+
+
+@pytest.mark.parametrize(
+    "arquivo",
+    sorted(FIXTURES_DIR.glob("*.json")),
+    ids=lambda caminho: caminho.name,
+)
+def test_detectar_mencoes_nos_fixtures(arquivo):
+    respostas = carregar_respostas(arquivo)
+
+    assert isinstance(respostas, list)
+
+    for resposta in respostas:
+        resultado = detectar_mencoes(resposta.resposta_texto)
+
+        assert isinstance(resultado, dict)
+
+        for marca, ocorrencias in resultado.items():
+            assert isinstance(marca, str)
+            assert isinstance(ocorrencias, int)
+            assert ocorrencias > 0

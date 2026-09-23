@@ -1,0 +1,240 @@
+### ============================================================
+### VARIÁVEIS
+### ============================================================
+
+@baseUrl = http://127.0.0.1:8000
+
+
+### ============================================================
+### POST /respostas
+### Criar uma resposta simples
+### ============================================================
+
+POST {{baseUrl}}/respostas
+Content-Type: application/json
+
+[
+  {
+    "id": "http-001",
+    "pergunta": "Qual a melhor marca de monitoramento?",
+    "plataforma": "ChatGPT",
+    "modelo": "gpt-5",
+    "resposta_texto": "A Acme oferece uma excelente solução de monitoramento.",
+    "data_hora": "2026-09-22T10:00:00",
+    "sentimento": "positivo"
+  }
+]
+
+
+### ============================================================
+### POST /respostas
+### Criar resposta com múltiplas menções
+### ============================================================
+
+POST {{baseUrl}}/respostas
+Content-Type: application/json
+
+[
+  {
+    "id": "http-002",
+    "pergunta": "Compare as principais marcas.",
+    "plataforma": "Gemini",
+    "modelo": "gemini-2.5-pro",
+    "resposta_texto": "A Acme é uma boa opção. A Acme possui bons recursos. A Zenith também é interessante.",
+    "data_hora": "2026-09-22T11:00:00",
+    "sentimento": "positivo"
+  }
+]
+
+
+### ============================================================
+### POST /respostas
+### Criar várias respostas
+### ============================================================
+
+POST {{baseUrl}}/respostas
+Content-Type: application/json
+
+[
+  {
+    "id": "http-003",
+    "pergunta": "Qual ferramenta de IA devo utilizar?",
+    "plataforma": "ChatGPT",
+    "modelo": "gpt-5",
+    "resposta_texto": "A Acme é uma opção.",
+    "data_hora": "2026-09-22T12:00:00",
+    "sentimento": "positivo"
+  },
+  {
+    "id": "http-004",
+    "pergunta": "Qual ferramenta de IA devo utilizar?",
+    "plataforma": "Gemini",
+    "modelo": "gemini-2.5-pro",
+    "resposta_texto": "A Zenith é uma alternativa.",
+    "data_hora": "2026-09-22T13:00:00",
+    "sentimento": "neutro"
+  },
+  {
+    "id": "http-005",
+    "pergunta": "Qual ferramenta de IA devo utilizar?",
+    "plataforma": "Perplexity",
+    "modelo": "sonar",
+    "resposta_texto": "A Acme e a Nimbus são alternativas.",
+    "data_hora": "2026-09-22T14:00:00",
+    "sentimento": "positivo"
+  }
+]
+
+
+### ============================================================
+### POST /respostas
+### Testar case insensitive da marca
+### ============================================================
+
+POST {{baseUrl}}/respostas
+Content-Type: application/json
+
+[
+  {
+    "id": "http-006",
+    "pergunta": "Fale sobre a marca.",
+    "plataforma": "ChatGPT",
+    "modelo": "gpt-5",
+    "resposta_texto": "ACME é uma marca conhecida. acme possui bons produtos.",
+    "data_hora": "2026-09-22T15:00:00",
+    "sentimento": "neutro"
+  }
+]
+
+
+### ============================================================
+### POST /respostas
+### Dados inválidos
+### ============================================================
+
+POST {{baseUrl}}/respostas
+Content-Type: application/json
+
+[
+  {
+    "id": "http-007",
+    "pergunta": "Teste inválido",
+    "plataforma": "ChatGPT",
+    "modelo": "gpt-5",
+    "resposta_texto": "",
+    "data_hora": "2026-09-22T16:00:00",
+    "sentimento": "neutro"
+  }
+]
+
+
+### ============================================================
+### GET /share-of-voice
+### Marca existente
+### ============================================================
+
+GET {{baseUrl}}/share-of-voice?marca=Acme
+Accept: application/json
+
+
+### ============================================================
+### GET /share-of-voice
+### Marca em minúsculo
+### ============================================================
+
+GET {{baseUrl}}/share-of-voice?marca=acme
+Accept: application/json
+
+
+### ============================================================
+### GET /share-of-voice
+### Marca em maiúsculo
+### ============================================================
+
+GET {{baseUrl}}/share-of-voice?marca=ACME
+Accept: application/json
+
+
+### ============================================================
+### GET /share-of-voice
+### Marca inexistente
+### ============================================================
+
+GET {{baseUrl}}/share-of-voice?marca=MarcaInexistente
+Accept: application/json
+
+
+### ============================================================
+### GET /share-of-voice
+### Sem parâmetro marca
+### Deve retornar 422
+### ============================================================
+
+GET {{baseUrl}}/share-of-voice
+Accept: application/json
+
+
+### ============================================================
+### GET /top-citacoes
+### Valor padrão: n = 5
+### ============================================================
+
+GET {{baseUrl}}/top-citacoes
+Accept: application/json
+
+
+### ============================================================
+### GET /top-citacoes
+### n = 3
+### ============================================================
+
+GET {{baseUrl}}/top-citacoes?n=3
+Accept: application/json
+
+
+### ============================================================
+### GET /top-citacoes
+### n = 1
+### ============================================================
+
+GET {{baseUrl}}/top-citacoes?n=1
+Accept: application/json
+
+
+### ============================================================
+### GET /top-citacoes
+### n = 10
+### ============================================================
+
+GET {{baseUrl}}/top-citacoes?n=10
+Accept: application/json
+
+
+### ============================================================
+### GET /top-citacoes
+### n inválido
+### Deve retornar 422 porque n >= 1
+### ============================================================
+
+GET {{baseUrl}}/top-citacoes?n=0
+Accept: application/json
+
+
+### ============================================================
+### GET /top-citacoes
+### n negativo
+### Deve retornar 422
+### ============================================================
+
+GET {{baseUrl}}/top-citacoes?n=-1
+Accept: application/json
+
+
+### ============================================================
+### GET /top-citacoes
+### n não numérico
+### Deve retornar 422
+### ============================================================
+
+GET {{baseUrl}}/top-citacoes?n=abc
+Accept: application/json

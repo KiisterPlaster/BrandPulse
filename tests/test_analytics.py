@@ -17,7 +17,7 @@ def criar_resposta(
     resposta_texto: str = "Resposta de teste.",
 ) -> Resposta:
     return Resposta(
-        id=id,
+        resposta_id=id,
         pergunta="Qual a melhor marca?",
         plataforma=plataforma,
         modelo="gpt-5",
@@ -186,6 +186,115 @@ def test_multiplas_ocorrencias_da_marca_contam_como_uma_resposta():
     assert resultado.percentual == 50.0
 
 
+def test_share_of_voice_marca_case_insensitive():
+    respostas = [
+        criar_resposta(
+            "1",
+            "ChatGPT",
+            "A Acme é uma boa marca.",
+        ),
+        criar_resposta(
+            "2",
+            "Gemini",
+            "A ACME possui bons produtos.",
+        ),
+        criar_resposta(
+            "3",
+            "Perplexity",
+            "A acme é bastante conhecida.",
+        ),
+        criar_resposta(
+            "4",
+            "ChatGPT",
+            "A Zenith é uma alternativa.",
+        ),
+    ]
+
+    respostas_com_marca = [
+        respostas[0],
+        respostas[1],
+        respostas[2],
+    ]
+
+    repository = criar_repository(
+        respostas=respostas,
+        respostas_com_marca=respostas_com_marca,
+    )
+
+    resultado = calcular_share_of_voice(repository, "acme")
+
+    assert resultado.marca == "acme"
+    assert resultado.total_respostas == 4
+    assert resultado.respostas_com_mencao == 3
+    assert resultado.percentual == 75.0
+
+
+def test_share_of_voice_marca_case_insensitive_maiusculo():
+    respostas = [
+        criar_resposta(
+            "1",
+            "ChatGPT",
+            "A Acme é uma boa marca.",
+        ),
+        criar_resposta(
+            "2",
+            "Gemini",
+            "A acme possui bons produtos.",
+        ),
+    ]
+
+    respostas_com_marca = [
+        respostas[0],
+        respostas[1],
+    ]
+
+    repository = criar_repository(
+        respostas=respostas,
+        respostas_com_marca=respostas_com_marca,
+    )
+
+    resultado = calcular_share_of_voice(repository, "ACME")
+
+    assert resultado.marca == "ACME"
+    assert resultado.total_respostas == 2
+    assert resultado.respostas_com_mencao == 2
+    assert resultado.percentual == 100.0
+
+
+def test_share_of_voice_marca_case_insensitive_misto():
+    respostas = [
+        criar_resposta(
+            "1",
+            "ChatGPT",
+            "A ACME é uma boa marca.",
+        ),
+        criar_resposta(
+            "2",
+            "Gemini",
+            "A acme possui bons produtos.",
+        ),
+        criar_resposta(
+            "3",
+            "Perplexity",
+            "A AcMe atua nesse mercado.",
+        ),
+    ]
+
+    respostas_com_marca = respostas.copy()
+
+    repository = criar_repository(
+        respostas=respostas,
+        respostas_com_marca=respostas_com_marca,
+    )
+
+    resultado = calcular_share_of_voice(repository, "AcMe")
+
+    assert resultado.marca == "AcMe"
+    assert resultado.total_respostas == 3
+    assert resultado.respostas_com_mencao == 3
+    assert resultado.percentual == 100.0
+
+
 # ---------------------------------------------------------------------------
 # Score de citação
 # ---------------------------------------------------------------------------
@@ -291,6 +400,11 @@ def test_obter_top_citacoes_ordena_por_score():
 
     assert len(resultado) == 3
 
+    # Score:
+    # resposta 2 -> 2 marcas * 2 + 3 ocorrências = 7
+    # resposta 3 -> 1 marca  * 2 + 3 ocorrências = 5
+    # resposta 1 -> 1 marca  * 2 + 1 ocorrência  = 3
+
     assert resultado[0].resposta_id == "2"
     assert resultado[0].score == 7
 
@@ -319,15 +433,23 @@ def test_obter_top_citacoes_respeita_limite_n():
 
         respostas.append(resposta)
 
-    resultado = obter_top_citacoes(respostas, 2)
+    resultado = obter_top_citacoes(
+        respostas,
+        2,
+    )
 
     assert len(resultado) == 2
+
     assert resultado[0].resposta_id == "4"
     assert resultado[1].resposta_id == "3"
 
 
 def test_obter_top_citacoes_ignora_respostas_sem_mencoes():
-    resposta_com_mencao = criar_resposta("1", "ChatGPT")
+    resposta_com_mencao = criar_resposta(
+        "1",
+        "ChatGPT",
+    )
+
     resposta_com_mencao.mencoes = [
         Mencao(
             marca="Acme",
@@ -335,7 +457,11 @@ def test_obter_top_citacoes_ignora_respostas_sem_mencoes():
         )
     ]
 
-    resposta_sem_mencao = criar_resposta("2", "Gemini")
+    resposta_sem_mencao = criar_resposta(
+        "2",
+        "Gemini",
+    )
+
     resposta_sem_mencao.mencoes = []
 
     resultado = obter_top_citacoes(
@@ -351,7 +477,10 @@ def test_obter_top_citacoes_ignora_respostas_sem_mencoes():
 
 
 def test_obter_top_citacoes_retorna_marcas():
-    resposta = criar_resposta("1", "ChatGPT")
+    resposta = criar_resposta(
+        "1",
+        "ChatGPT",
+    )
 
     resposta.mencoes = [
         Mencao(
@@ -368,7 +497,10 @@ def test_obter_top_citacoes_retorna_marcas():
         ),
     ]
 
-    resultado = obter_top_citacoes([resposta], 1)
+    resultado = obter_top_citacoes(
+        [resposta],
+        1,
+    )
 
     assert resultado[0].marcas == [
         "Acme",
@@ -393,7 +525,12 @@ def test_obter_top_citacoes_retorna_dados_da_resposta():
         )
     ]
 
-    resultado = obter_top_citacoes([resposta], 1)
+    resultado = obter_top_citacoes(
+        [resposta],
+        1,
+    )
+
+    assert len(resultado) == 1
 
     assert resultado[0].resposta_id == "resposta-001"
     assert resultado[0].plataforma == "ChatGPT"
@@ -401,3 +538,82 @@ def test_obter_top_citacoes_retorna_dados_da_resposta():
     assert resultado[0].resposta_texto == ("A Acme é uma excelente opção.")
     assert resultado[0].marcas == ["Acme"]
     assert resultado[0].score == 3
+
+
+def test_obter_top_citacoes_lista_vazia():
+    resultado = obter_top_citacoes([], 5)
+
+    assert resultado == []
+
+
+def test_obter_top_citacoes_n_maior_que_quantidade_de_respostas():
+    resposta = criar_resposta(
+        "1",
+        "ChatGPT",
+    )
+
+    resposta.mencoes = [
+        Mencao(
+            marca="Acme",
+            ocorrencias=1,
+        )
+    ]
+
+    resultado = obter_top_citacoes(
+        [resposta],
+        10,
+    )
+
+    assert len(resultado) == 1
+    assert resultado[0].resposta_id == "1"
+
+
+def test_obter_top_citacoes_n_igual_a_um():
+    resposta_1 = criar_resposta("1", "ChatGPT")
+    resposta_1.mencoes = [
+        Mencao(
+            marca="Acme",
+            ocorrencias=1,
+        )
+    ]
+
+    resposta_2 = criar_resposta("2", "Gemini")
+    resposta_2.mencoes = [
+        Mencao(
+            marca="Acme",
+            ocorrencias=5,
+        )
+    ]
+
+    resultado = obter_top_citacoes(
+        [resposta_1, resposta_2],
+        1,
+    )
+
+    assert len(resultado) == 1
+    assert resultado[0].resposta_id == "2"
+    assert resultado[0].score == 7
+
+
+def test_obter_top_citacoes_preserva_modelo_none():
+    resposta = criar_resposta(
+        "1",
+        "ChatGPT",
+    )
+
+    resposta.modelo = None
+
+    resposta.mencoes = [
+        Mencao(
+            marca="Acme",
+            ocorrencias=1,
+        )
+    ]
+
+    resultado = obter_top_citacoes(
+        [resposta],
+        1,
+    )
+
+    assert resultado[0].resposta_id == "1"
+    assert resultado[0].modelo is None

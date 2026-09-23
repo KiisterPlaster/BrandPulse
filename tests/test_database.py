@@ -2,7 +2,8 @@ from sqlalchemy import create_engine, inspect, text
 from sqlalchemy.orm import Session
 from sqlalchemy.pool import StaticPool
 
-from app.database.tables import Base
+from app.database.connection import engine
+from app.database.init_db import create_tables
 
 
 def create_test_engine():
@@ -23,9 +24,7 @@ def test_database_connection():
 
 
 def test_create_tables():
-    engine = create_test_engine()
-
-    Base.metadata.create_all(bind=engine)
+    create_tables()
 
     inspector = inspect(engine)
     tabelas = inspector.get_table_names()

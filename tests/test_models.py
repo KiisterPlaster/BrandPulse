@@ -22,7 +22,7 @@ def test_criar_resposta():
     Base.metadata.create_all(engine)
 
     resposta = Resposta(
-        id="resposta-001",
+        resposta_id="resposta-001",
         pergunta="Quais são as melhores ferramentas de IA?",
         plataforma="ChatGPT",
         modelo="gpt-5",
@@ -34,16 +34,15 @@ def test_criar_resposta():
     with Session(engine) as session:
         session.add(resposta)
         session.commit()
+        session.refresh(resposta)
 
-        resultado = session.get(Resposta, "resposta-001")
-
-    assert resultado is not None
-    assert resultado.id == "resposta-001"
-    assert resultado.pergunta == "Quais são as melhores ferramentas de IA?"
-    assert resultado.plataforma == "ChatGPT"
-    assert resultado.modelo == "gpt-5"
-    assert resultado.resposta_texto == "A Acme é uma das opções disponíveis."
-    assert resultado.sentimento == "positivo"
+        assert resposta.id is not None
+        assert resposta.resposta_id == "resposta-001"
+        assert resposta.pergunta == "Quais são as melhores ferramentas de IA?"
+        assert resposta.plataforma == "ChatGPT"
+        assert resposta.modelo == "gpt-5"
+        assert resposta.resposta_texto == ("A Acme é uma das opções disponíveis.")
+        assert resposta.sentimento == "positivo"
 
 
 def test_criar_mencao():
@@ -51,7 +50,7 @@ def test_criar_mencao():
     Base.metadata.create_all(engine)
 
     resposta = Resposta(
-        id="resposta-002",
+        resposta_id="resposta-002",
         pergunta="Quais marcas são recomendadas?",
         plataforma="Gemini",
         modelo="gemini-2",
@@ -60,23 +59,28 @@ def test_criar_mencao():
         sentimento=None,
     )
 
-    mencao = Mencao(
-        resposta_id="resposta-002",
-        marca="Acme",
-        ocorrencias=1,
-    )
-
     with Session(engine) as session:
         session.add(resposta)
+        session.commit()
+        session.refresh(resposta)
+
+        mencao = Mencao(
+            resposta_id=resposta.id,
+            marca="Acme",
+            ocorrencias=1,
+        )
+
         session.add(mencao)
         session.commit()
+        session.refresh(mencao)
 
-        resultado = session.get(Mencao, 1)
+        resultado = session.get(Mencao, mencao.id)
 
-    assert resultado is not None
-    assert resultado.resposta_id == "resposta-002"
-    assert resultado.marca == "Acme"
-    assert resultado.ocorrencias == 1
+        assert resultado is not None
+        assert resultado.id is not None
+        assert resultado.resposta_id == resposta.id
+        assert resultado.marca == "Acme"
+        assert resultado.ocorrencias == 1
 
 
 def test_resposta_possui_multiplas_mencoes():
@@ -84,7 +88,7 @@ def test_resposta_possui_multiplas_mencoes():
     Base.metadata.create_all(engine)
 
     resposta = Resposta(
-        id="resposta-003",
+        resposta_id="resposta-003",
         pergunta="Compare as marcas.",
         plataforma="ChatGPT",
         modelo="gpt-5",
@@ -111,15 +115,23 @@ def test_resposta_possui_multiplas_mencoes():
     with Session(engine) as session:
         session.add(resposta)
         session.commit()
+        session.refresh(resposta)
 
-        resultado = session.get(Resposta, "resposta-003")
+        resultado = session.get(Resposta, resposta.id)
 
         assert resultado is not None
+        assert resultado.id is not None
+        assert resultado.resposta_id == "resposta-003"
+
         assert len(resultado.mencoes) == 3
 
         marcas = {mencao.marca for mencao in resultado.mencoes}
 
-        assert marcas == {"Acme", "Zenith", "Nimbus"}
+        assert marcas == {
+            "Acme",
+            "Zenith",
+            "Nimbus",
+        }
 
 
 def test_mencao_armazena_quantidade_de_ocorrencias():
@@ -127,7 +139,7 @@ def test_mencao_armazena_quantidade_de_ocorrencias():
     Base.metadata.create_all(engine)
 
     resposta = Resposta(
-        id="resposta-004",
+        resposta_id="resposta-004",
         pergunta="Fale sobre a Acme.",
         plataforma="Perplexity",
         modelo="sonar",
@@ -148,10 +160,13 @@ def test_mencao_armazena_quantidade_de_ocorrencias():
     with Session(engine) as session:
         session.add(resposta)
         session.commit()
+        session.refresh(resposta)
 
-        resultado = session.get(Resposta, "resposta-004")
+        resultado = session.get(Resposta, resposta.id)
 
         assert resultado is not None
+        assert resultado.resposta_id == "resposta-004"
+
         assert len(resultado.mencoes) == 1
         assert resultado.mencoes[0].marca == "Acme"
         assert resultado.mencoes[0].ocorrencias == 2
